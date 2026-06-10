@@ -1044,9 +1044,8 @@
             const nextWeekEl = document.getElementById('news-next-week');
             const nextWeekLabel = document.getElementById('next-week-label');
             if (nextWeekLabel) {
-                const ws = getWeekStart(new Date());
-                ws.setDate(ws.getDate() + 7);
-                nextWeekLabel.textContent = `Week beginning ${formatDateNice(ws.toISOString().slice(0,10))}`;
+                // Keep label short for the narrow column
+                nextWeekLabel.textContent = 'Following week';
             }
             
             if (nextWeekEl) {

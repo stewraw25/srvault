@@ -343,42 +343,43 @@
                 <div class="flex-1">
                     <div class="text-xs uppercase tracking-widest text-[#888] mb-2">Account Snapshot</div>
                     <div class="space-y-[1px] text-sm">
+                        <!-- Consistent value column for easy reading and alignment -->
                         <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Open Trades</span>
-                            <div class="w-24 text-right font-mono font-semibold">
+                            <div class="w-[7rem] text-right font-mono font-semibold">
                                 <input id="open-trades" type="number" value="2" 
                                        class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Pending Orders</span>
-                            <div class="w-24 text-right font-mono font-semibold">
+                            <div class="w-[7rem] text-right font-mono font-semibold">
                                 <input id="pending-orders" type="number" value="1" 
                                        class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Risk PER Trade</span>
-                            <div class="w-24 text-right font-mono font-semibold flex items-center justify-end">
+                            <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <input id="risk-per-trade" type="number" value="1" step="0.1"
-                                       class="bg-transparent w-16 text-right focus:outline-none">
-                                <span class="text-[#888] ml-0.5">%</span>
+                                       class="bg-transparent w-[3.25rem] text-right focus:outline-none">
+                                <span class="text-[#888]">%</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Account Balance</span>
-                            <div class="w-24 text-right font-mono font-semibold flex items-center justify-end">
-                                <span class="text-[#888]">$</span>
+                            <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
+                                <span class="text-[#888] w-3 text-right">$</span>
                                 <input id="account-balance" type="number" value="10000" 
-                                       class="bg-transparent w-20 text-right focus:outline-none">
+                                       class="bg-transparent w-[4.25rem] text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1.5 px-1">
                             <span class="text-[#aaa]">Current Trade P/L</span>
-                            <div class="w-24 text-right font-mono font-semibold flex items-center justify-end">
-                                <span class="text-[#888]">$</span>
+                            <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
+                                <span class="text-[#888] w-3 text-right">$</span>
                                 <input id="current-pl" type="number" value="0" 
-                                       class="bg-transparent w-20 text-right focus:outline-none">
+                                       class="bg-transparent w-[4.25rem] text-right focus:outline-none">
                             </div>
                         </div>
                     </div>

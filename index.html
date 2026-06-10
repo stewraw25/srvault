@@ -1004,10 +1004,10 @@
             let status = 'GREEN';
             let reason = 'Normal Trading Conditions Resume';
             
-            // Simple red day logic (matches the Python version)
+            // Simple red day logic (matches the Python version) - custom messages per user
             if (month === 8) {
                 status = 'RED';
-                reason = 'AUGUST — Full month (high caution)';
+                reason = 'no trading in august';
             } 
             else if (month === 12 && day >= 11) {
                 status = 'RED';
@@ -1015,12 +1015,12 @@
             } 
             else if ([3,6,9,12].includes(month) && day >= 29) {
                 status = 'RED';
-                reason = 'LAST 3 DAYS OF QUARTER';
+                reason = 'no trading at all on EOQ days';
             } 
             else if (day === 31 || (day === 30 && [4,6,9,11].includes(month)) || (day === 28 && month === 2)) {
-                // approximate last day
+                // approximate last day of month
                 status = 'RED';
-                reason = 'LAST DAY OF THE MONTH';
+                reason = 'No trading between 12 - 7pm';
             }
             
             // Floating widget (bottom right pill - keep as the "normal trading floating widget")

@@ -900,7 +900,7 @@
                 if (FINNHUB_KEY && !FINNHUB_KEY.includes('YOUR_FREE')) {
                     fetchFinnhubPrice(false);
                 } else {
-                    fetchFrankfurterPrice(false);
+                    fetchFrankfurterPrice(true);  // force flash every poll so you see it's actively live-updating
                 }
             }, 5000);
 

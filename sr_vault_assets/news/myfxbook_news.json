@@ -1,45 +1,13 @@
 {
-  "last_fetched": "2026-06-10T10:03:55.551223",
-  "source": "Auto (Forex Factory + strict user whitelist)",
+  "last_fetched": "2026-06-10T19:44:29.372964",
+  "source": "Auto (Forex Factory + filters)",
   "events": [
     {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "Core CPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "Core CPI y/y",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "CPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "CPI y/y",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
-      "time_utc": "06:00",
-      "event": "GDP (MoM)",
-      "currency": "GBP",
-      "impact": "HIGH",
+      "date": "2026-06-08",
+      "time_utc": "00:03",
+      "event": "Final GDP q/q",
+      "currency": "JPY",
+      "impact": "LOW",
       "source": "Forex Factory"
     }
   ]

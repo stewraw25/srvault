@@ -149,6 +149,21 @@
             font-size: 1.05rem;
             letter-spacing: 0.5px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            line-height: 1.3;
+        }
+        #day-status-banner .rules {
+            font-size: 0.7rem;
+            margin-top: 6px;
+            opacity: 0.95;
+            text-align: left;
+            line-height: 1.25;
+        }
+        #day-status-banner .rules ul {
+            margin: 4px 0 0 0;
+            padding-left: 16px;
+        }
+        #day-status-banner .rules li {
+            margin-bottom: 2px;
         }
 
         #day-status {
@@ -987,7 +1002,7 @@
             const day = today.getDate();
             
             let status = 'GREEN';
-            let reason = 'NORMAL TRADING DAY';
+            let reason = 'Normal Trading Conditions Resume';
             
             // Simple red day logic (matches the Python version)
             if (month === 8) {
@@ -1249,12 +1264,27 @@
                     // Yellow day: if there are HIGH impact events today, update the day status bar + widget to yellow
                     // This makes the full-width bar and floating widget reflect "YELLOW DAY" when news warrants caution
                     const hasHighImpactToday = todayEvents.some(e => e.impact === 'HIGH');
-                    if (hasHighImpactToday) {
+                    if (hasHighImpactToday && !specialDayType) {
                         const banner = document.getElementById('day-status-banner');
                         const container = document.getElementById('day-status');
                         if (banner) {
                             banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                            banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 YELLOW DAY — HIGH IMPACT NEWS`;
+                            banner.innerHTML = `
+                                <i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 YELLOW DAY — HIGH IMPACT NEWS
+                                <div class="rules">
+                                    <b>DO NOT enter a trade 4 Hours Before a News Release</b><br>
+                                    Do not enter trades during this period to avoid unpredictable market movements.<br><br>
+                                    <b>Trading After News Release</b><br>
+                                    If News BEATS CONSENSUS ⬆️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br>
+                                    If News MATCHES CONSENSUS ➡️ - Trade as normal but Zone needs to be 100+ PIPS away<br>
+                                    If News MISSES CONSENSUS ⬇️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br><br>
+                                    *** DO NOT TRADE AGAINST CONSENSUS (Follow Reversal Trade Rules Below) ***<br><br>
+                                    <b>Reversal Trades on High-Impact News Days</b><br>
+                                    • Enter reversal trades only after 8PM UK time.<br>
+                                    • These reversals typically play out the following day<br>
+                                    • Or avoid trading and get into pullback next day
+                                </div>
+                            `;
                         }
                         if (container) {
                             container.className = `status-yellow`;
@@ -1262,18 +1292,22 @@
                         }
                     }
 
-                    // NFP / BOE special volatile days - force RED bar with specific label + flashing rule (main bar only)
-                    // These override yellow if present. The rule "No trading after 9am..." flashes only for these two.
+                    // NFP / BOE special volatile days - force RED bar with specific label + the reversal rules (main bar only)
+                    // These are high-impact and override yellow. Use the full reversal rules as specified.
                     if (specialDayType) {
                         const banner = document.getElementById('day-status-banner');
                         const container = document.getElementById('day-status');
                         const label = `${specialDayType} DAY`;
-                        const rule = 'No trading after 9am on the day or until 9am the next day';
                         if (banner) {
                             banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
                             banner.innerHTML = `
                                 <i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${label}
-                                <div class="text-xs mt-1 font-normal animate-pulse">${rule}</div>
+                                <div class="rules">
+                                    <b>Reversal Trades on High-Impact News Days</b><br>
+                                    • Enter reversal trades only after 8PM UK time.<br>
+                                    • These reversals typically play out the following day<br>
+                                    • Or avoid trading and get into pullback next day
+                                </div>
                             `;
                         }
                         if (container) {

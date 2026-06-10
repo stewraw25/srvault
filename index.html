@@ -267,8 +267,8 @@
                 <div class="text-[10px] text-[#888] tracking-[1px]">LIVE (auto every 5s)</div>
                 <div class="flex items-center justify-end gap-x-1">
                     <!-- TradingView GBPJPY logo -->
-                    <span onclick="window.open('https://www.tradingview.com/symbols/GBPJPY/', '_blank')" 
-                          style="cursor:pointer; display:inline-flex; align-items:center;" title="View on TradingView">
+                    <span onclick="forceLivePriceRefresh()" 
+                          style="cursor:pointer; display:inline-flex; align-items:center;" title="Click to force live price refresh (shows real-time update on this panel)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="12" r="11" fill="#E53935"/>
                             <!-- Approximate white design from the provided logo -->
@@ -930,6 +930,29 @@
                     if (e.key === 'Enter') updatePrice();
                 });
             }
+        }
+
+        function forceLivePriceRefresh() {
+            // Visually show live update on the site (ring flash + input flash + temp text)
+            const priceBox = document.getElementById('gbpjpy-price-box');
+            if (priceBox) {
+                priceBox.classList.remove('price-updating');
+                void priceBox.offsetWidth; // restart animation
+                priceBox.classList.add('price-updating');
+            }
+
+            const updatedText = document.getElementById('gbpjpy-updated-text');
+            if (updatedText) updatedText.textContent = 'updating...';
+
+            if (FINNHUB_KEY && !FINNHUB_KEY.includes('YOUR_FREE')) {
+                fetchFinnhubPrice(true);
+            } else {
+                fetchFrankfurterPrice(true);
+            }
+
+            setTimeout(() => {
+                if (updatedText) updatedText.textContent = 'live';
+            }, 800);
         }
 
         // Chart upload

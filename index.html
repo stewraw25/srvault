@@ -404,8 +404,9 @@
                     <!-- Populated by JS -->
                 </div>
                 
-                <div class="text-[9px] text-[#666] mt-2 px-1">
-                    Auto-refreshes from JSON every 5 min • Click refresh or tell Grok new posts
+                <div class="text-[9px] text-[#666] mt-2 px-1 flex items-center justify-between">
+                    <span>Auto-refreshes from JSON every 5 min</span>
+                    <span id="zh-last-refresh" class="text-[#555]"></span>
                 </div>
             </div>
             
@@ -1015,6 +1016,7 @@
             if (container) {
                 container.style.opacity = '0.5';
             }
+            updateZHLastRefresh(); // immediate feedback that we refreshed the widget
             // Force a fresh load from the JSON (this is how the widget stays up to date)
             loadZeroHedgeFromJSON();
 
@@ -1038,10 +1040,22 @@
                         zerohedgePosts = posts;
                         renderZeroHedge();
                     }
+                    updateZHLastRefresh();
                 })
                 .catch(() => {
                     // fall back to the static array that is already in the file
+                    renderZeroHedge();
+                    updateZHLastRefresh();
                 });
+        }
+
+        function updateZHLastRefresh() {
+            const el = document.getElementById('zh-last-refresh');
+            if (!el) return;
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            el.textContent = `refreshed ${time}`;
+            localStorage.setItem('sr_zh_last_refresh', now.toISOString());
         }
 
         // News data — now populated dynamically from the JSON produced by sr_vault_news_scan.py
@@ -1345,6 +1359,7 @@
             
             // ZeroHedge (will prefer zerohedge.json if present — maintained by bot/script)
             renderZeroHedge();
+            updateZHLastRefresh(); // show initial load time
             loadZeroHedgeFromJSON();
             setInterval(loadZeroHedgeFromJSON, 5 * 60 * 1000); // every 5 min (or faster via bot push)
             
@@ -1386,6 +1401,7 @@
         window.refreshZeroHedge = function() {
             const container = document.getElementById('zerohedge-list');
             if (container) container.style.opacity = '0.5';
+            updateZHLastRefresh(); // immediate feedback
             loadZeroHedgeFromJSON();
             setTimeout(() => {
                 const c = document.getElementById('zerohedge-list');

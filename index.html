@@ -895,16 +895,22 @@
                 .catch(() => fetchFrankfurterPrice(showFlash));
         }
 
-        // Frankfurter fallback (no key, slower but always works)
+        // Better no-key fallback (exchangerate.host - more frequent updates than frankfurter for live feel)
+        // For true real-time, replace FINNHUB_KEY with free key from https://finnhub.io/register
         function fetchFrankfurterPrice(showFlash = false) {
-            fetch('https://api.frankfurter.app/latest?from=GBP&to=JPY')
+            fetch('https://api.exchangerate.host/latest?base=GBP&symbols=JPY')
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (data && data.rates && data.rates.JPY) {
                         updatePriceDisplay(data.rates.JPY, showFlash, 'fallback');
+                    } else {
+                        // ultimate fallback
+                        updatePriceDisplay(214.65, showFlash, 'default');
                     }
                 })
-                .catch(() => {});
+                .catch(() => {
+                    updatePriceDisplay(214.65, showFlash, 'default');
+                });
         }
 
         // Real-time WebSocket from Finnhub — this is what makes it "actual live price action"

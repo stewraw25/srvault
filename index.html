@@ -278,6 +278,10 @@
                     </button>
                 </div>
                 <div id="gbpjpy-delta" class="text-[10px] text-[#4ade80] font-medium">+0.13 • +0.06%</div>
+                <div id="gbpjpy-updated" class="text-[9px] text-[#666] mt-0.5 flex items-center gap-1 justify-end">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse"></span>
+                    <span id="gbpjpy-updated-text">live</span>
+                </div>
             </div>
         </div>
 
@@ -706,51 +710,179 @@
             }
         }
 
-        // Live GBPJPY price - fetches automatically from public API
-        // This runs on load and every 60 seconds so the price is always current
-        // without needing to ask Grok to refresh.
-        let lastFetchedPrice = null;
+        // ============ LIVE GBPJPY PRICE (real market data) ============
+        // Switched to Finnhub for actual live price action (real-time quotes + trades).
+        // 1. Get a FREE key (30 seconds): https://finnhub.io/register
+        // 2. Paste it below. The key is only used for your personal panel.
+        // Primary = Finnhub REST (reliable quote) + WebSocket (true tick-by-tick live updates when market open).
+        // Fallback = frankfurter.app (no key).
+        // This gives real price action instead of slow aggregated rates.
+        const FINNHUB_KEY = 'YOUR_FREE_FINNHUB_KEY_HERE'; // <-- REPLACE THIS
 
-        function fetchLivePrice(showFlash = false) {
-            fetch('https://api.frankfurter.app/latest?from=GBP&to=JPY')
+        let lastFetchedPrice = null;
+        let lastPriceUpdate = null;
+        let priceWs = null;
+
+        function updatePriceDisplay(rate, showFlash = false, source = '') {
+            const input = document.getElementById('gbpjpy-price');
+            const deltaEl = document.getElementById('gbpjpy-delta');
+            const updatedEl = document.getElementById('gbpjpy-updated');
+            const updatedText = document.getElementById('gbpjpy-updated-text');
+
+            if (input && document.activeElement !== input) {
+                const oldVal = parseFloat(input.value);
+                input.value = rate.toFixed(2);
+
+                if (showFlash || (oldVal && Math.abs(rate - oldVal) > 0.01)) {
+                    input.style.color = '#4ade80';
+                    setTimeout(() => { if (input) input.style.color = '#f0f0f0'; }, 450);
+                }
+            }
+
+            if (deltaEl && lastFetchedPrice !== null) {
+                const change = rate - lastFetchedPrice;
+                const pct = (change / lastFetchedPrice) * 100;
+                const sign = change >= 0 ? '+' : '';
+                deltaEl.textContent = `${sign}${change.toFixed(2)} • ${sign}${pct.toFixed(2)}%`;
+                deltaEl.style.color = change >= 0 ? '#4ade80' : '#f87171';
+            } else if (deltaEl) {
+                deltaEl.textContent = 'live • market data';
+                deltaEl.style.color = '#4ade80';
+            }
+
+            lastFetchedPrice = rate;
+            lastPriceUpdate = Date.now();
+
+            // Show relative "updated X ago" for real live feel
+            if (updatedText) {
+                updatedText.textContent = source ? `live (${source})` : 'live';
+            }
+            if (updatedEl) {
+                updatedEl.style.opacity = '1';
+            }
+        }
+
+        function startPriceAgeUpdater() {
+            setInterval(() => {
+                const updatedText = document.getElementById('gbpjpy-updated-text');
+                if (!updatedText || !lastPriceUpdate) return;
+
+                const secs = Math.floor((Date.now() - lastPriceUpdate) / 1000);
+                if (secs < 5) {
+                    updatedText.textContent = 'live';
+                } else if (secs < 60) {
+                    updatedText.textContent = `${secs}s ago`;
+                } else {
+                    updatedText.textContent = `${Math.floor(secs/60)}m ago`;
+                }
+            }, 5000);
+        }
+
+        // Finnhub REST quote (solid baseline, very frequent during market hours)
+        function fetchFinnhubPrice(showFlash = false) {
+            if (!FINNHUB_KEY || FINNHUB_KEY.includes('YOUR_FREE')) {
+                fetchFrankfurterPrice(showFlash);
+                return;
+            }
+
+            fetch(`https://finnhub.io/api/v1/quote?symbol=GBPJPY&token=${FINNHUB_KEY}`)
                 .then(r => {
-                    if (!r.ok) throw new Error('fetch failed');
+                    if (!r.ok) throw new Error('finnhub fail');
                     return r.json();
                 })
                 .then(data => {
-                    const rate = data.rates.JPY;
-                    const input = document.getElementById('gbpjpy-price');
-                    const deltaEl = document.getElementById('gbpjpy-delta');
-
-                    if (input && document.activeElement !== input) {
-                        input.value = rate.toFixed(2);
-                        if (showFlash) {
-                            input.style.color = '#4ade80';
-                            setTimeout(() => { if (input) input.style.color = '#f0f0f0'; }, 450);
-                        }
+                    if (data && typeof data.c === 'number' && data.c > 0) {
+                        updatePriceDisplay(data.c, showFlash, 'finnhub');
+                    } else {
+                        fetchFrankfurterPrice(showFlash);
                     }
-
-                    if (deltaEl && lastFetchedPrice !== null) {
-                        const change = rate - lastFetchedPrice;
-                        const pct = (change / lastFetchedPrice) * 100;
-                        const sign = change >= 0 ? '+' : '';
-                        deltaEl.textContent = `${sign}${change.toFixed(2)} • ${sign}${pct.toFixed(2)}%`;
-                        deltaEl.style.color = change >= 0 ? '#4ade80' : '#f87171';
-                    } else if (deltaEl && lastFetchedPrice === null) {
-                        // First successful fetch — show a subtle "live" state
-                        deltaEl.textContent = 'live • auto-updating';
-                        deltaEl.style.color = '#4ade80';
-                    }
-
-                    lastFetchedPrice = rate;
                 })
-                .catch(() => {
-                    // silent fail — keep last value
-                });
+                .catch(() => fetchFrankfurterPrice(showFlash));
         }
 
-        // Start live updates
-        setInterval(() => fetchLivePrice(true), 60000); // every minute, flash on auto updates
+        // Frankfurter fallback (no key, slower but always works)
+        function fetchFrankfurterPrice(showFlash = false) {
+            fetch('https://api.frankfurter.app/latest?from=GBP&to=JPY')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && data.rates && data.rates.JPY) {
+                        updatePriceDisplay(data.rates.JPY, showFlash, 'fallback');
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // Real-time WebSocket from Finnhub — this is what makes it "actual live price action"
+        // You get trade ticks as they happen (much better than polling).
+        function connectFinnhubLive() {
+            if (!FINNHUB_KEY || FINNHUB_KEY.includes('YOUR_FREE')) return;
+
+            try {
+                priceWs = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_KEY}`);
+
+                priceWs.onopen = () => {
+                    priceWs.send(JSON.stringify({ type: 'subscribe', symbol: 'GBPJPY' }));
+                };
+
+                priceWs.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg.type === 'trade' && msg.data && msg.data.length > 0) {
+                            // Use the most recent trade price
+                            const latestTrade = msg.data[msg.data.length - 1];
+                            if (latestTrade && typeof latestTrade.p === 'number') {
+                                updatePriceDisplay(latestTrade.p, true, 'live');
+                            }
+                        }
+                    } catch (e) {}
+                };
+
+                priceWs.onclose = () => {
+                    // Reconnect after a bit if it drops
+                    setTimeout(connectFinnhubLive, 15000);
+                };
+            } catch (e) {
+                // WS not available, polling will continue
+            }
+        }
+
+        function initLivePrice() {
+            loadPrice();
+
+            // Initial fetch (REST)
+            if (FINNHUB_KEY && !FINNHUB_KEY.includes('YOUR_FREE')) {
+                fetchFinnhubPrice(true);
+                // Connect WebSocket for true real-time ticks
+                connectFinnhubLive();
+            } else {
+                fetchFrankfurterPrice(true);
+                // Gentle reminder in console for the user
+                console.log('%c[SR Vault] For real live GBPJPY price action, get a free Finnhub key at https://finnhub.io/register and paste it into FINNHUB_KEY in the script.', 'color:#666');
+            }
+
+            // Fast initial catches for delta
+            setTimeout(() => fetchFinnhubPrice(true), 1200);
+            setTimeout(() => fetchFinnhubPrice(true), 2800);
+
+            // Regular polling (every 15s) — good safety net + works even if WS drops
+            setInterval(() => {
+                if (FINNHUB_KEY && !FINNHUB_KEY.includes('YOUR_FREE')) {
+                    fetchFinnhubPrice(false);
+                } else {
+                    fetchFrankfurterPrice(false);
+                }
+            }, 15000);
+
+            startPriceAgeUpdater();
+
+            // Enter key still works for manual override
+            const priceInput = document.getElementById('gbpjpy-price');
+            if (priceInput) {
+                priceInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') updatePrice();
+                });
+            }
+        }
 
         // Chart upload
         function handleChartUpload(event) {
@@ -1167,18 +1299,8 @@
             // Account snapshot persistence
             setupAccountSnapshot();
             
-            // Price
-            loadPrice();
-            fetchLivePrice(); // initial live price load
-            // Two rapid fetches at startup so we get a real delta + visual flash very quickly
-            setTimeout(() => fetchLivePrice(true), 1200);
-            setTimeout(() => fetchLivePrice(true), 2800);
-            const priceInput = document.getElementById('gbpjpy-price');
-            if (priceInput) {
-                priceInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') updatePrice();
-                });
-            }
+            // Price - now using real-time capable source (see initLivePrice above)
+            initLivePrice();
             
             // Chart
             loadSavedChart();

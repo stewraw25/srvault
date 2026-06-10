@@ -27,12 +27,10 @@ import time
 # =============================================================================
 # CONFIG — same as the trading panel
 # =============================================================================
-# Portable path: on GitHub Actions / CI use relative path so the Action can commit it.
-# Locally it keeps your original path for convenience.
-if os.environ.get('GITHUB_ACTIONS'):
-    NEWS_CACHE_PATH = "sr_vault_assets/news/myfxbook_news.json"
-else:
-    NEWS_CACHE_PATH = "/Users/stewartrawson/sr_vault_assets/news/myfxbook_news.json"  # local only
+# Path is relative to this script so it works whether you run from the srvault folder,
+# from GitHub Actions (cwd = repo root), or double-click the script. No hard-coded usernames.
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+NEWS_CACHE_PATH = os.path.join(SCRIPT_DIR, "sr_vault_assets", "news", "myfxbook_news.json")
 
 os.makedirs(os.path.dirname(NEWS_CACHE_PATH), exist_ok=True)
 

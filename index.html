@@ -120,6 +120,14 @@
             border: 1px solid #f87171;
         }
 
+        /* News cards accent for TODAY (yellow day theme) */
+        .news-today {
+            border-top: 4px solid #facc15;
+        }
+        .impact-high { color: #f87171; font-weight: 500; }
+        .impact-medium { color: #facc15; }
+        .impact-low { color: #4ade80; }
+
         /* Full-width day status banner under the three main boxes - more visible across the page */
         #day-status-banner {
             width: 100%;
@@ -409,31 +417,31 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col md:flex-row gap-4">
                     
-                    <!-- TODAY -->
-                    <div class="dark-card rounded-2xl p-4">
-                        <div class="font-semibold mb-2 text-sm tracking-wider">TODAY</div>
-                        <div id="news-today" class="space-y-2 text-sm">
-                            <!-- Populated by JS -->
+                    <!-- TODAY (narrower, 2-col content: time + event, yellow accent bar) -->
+                    <div class="dark-card rounded-2xl p-4 news-today md:w-1/5 md:min-w-[130px]">
+                        <div class="font-semibold mb-2 text-sm tracking-wider text-[#facc15]">TODAY</div>
+                        <div id="news-today" class="space-y-1 text-xs">
+                            <!-- Populated by JS (time + event only) -->
                         </div>
                     </div>
                     
-                    <!-- THIS WEEK -->
-                    <div class="dark-card rounded-2xl p-4">
+                    <!-- THIS WEEK (wider for better readability, bigger text) -->
+                    <div class="dark-card rounded-2xl p-4 md:flex-1">
                         <div class="font-semibold mb-2 text-sm tracking-wider">THIS WEEK</div>
-                        <div class="text-[10px] text-[#888] mb-2 whitespace-nowrap" id="this-week-label">Week beginning Monday 8th June 2026</div>
-                        <div id="news-this-week" class="space-y-2 text-sm">
+                        <div class="text-xs text-[#888] mb-2" id="this-week-label">Week beginning Monday 8th June 2026</div>
+                        <div id="news-this-week" class="space-y-1 text-sm">
                             <!-- Populated by JS -->
                         </div>
                     </div>
                     
-                    <!-- NEXT WEEK -->
-                    <div class="dark-card rounded-2xl p-4">
+                    <!-- NEXT WEEK (narrower, simple list, no dates/times) -->
+                    <div class="dark-card rounded-2xl p-4 md:w-1/5 md:min-w-[130px]">
                         <div class="font-semibold mb-2 text-sm tracking-wider">NEXT WEEK</div>
-                        <div class="text-[10px] text-[#888] mb-2 whitespace-nowrap" id="next-week-label">Week beginning Monday 15th June 2026</div>
-                        <div id="news-next-week" class="space-y-2 text-sm">
-                            <!-- Populated by JS -->
+                        <div class="text-xs text-[#888] mb-2" id="next-week-label">Week beginning Monday 15th June 2026</div>
+                        <div id="news-next-week" class="space-y-0.5 text-xs">
+                            <!-- Populated by JS (simple list) -->
                         </div>
                     </div>
                     
@@ -956,14 +964,16 @@
 
                     events.forEach(e => {
                         const d = e.date; // YYYY-MM-DD
+                        const impact = e.impact || 'MEDIUM';
                         const item = {
                             date: formatDateNice(d),
                             time: e.time_utc,
                             event: e.event,
-                            currency: e.currency
+                            currency: e.currency,
+                            impact
                         };
                         if (d === todayStr) {
-                            todayEvents.push({ time: e.time_utc, event: e.event, currency: e.currency });
+                            todayEvents.push({ time: e.time_utc, event: e.event, currency: e.currency, impact });
                         } else if (d >= thisMondayStr && d <= thisWeekEndStr) {
                             thisWeekEvents.push(item);
                         } else if (d >= nextMondayStr && d <= nextWeekEndStr) {
@@ -988,23 +998,24 @@
         }
 
         function renderNews() {
-            // TODAY
+            // TODAY - narrow 2-col (time + event), yellow accent on card
             const todayEl = document.getElementById('news-today');
             if (todayEl) {
                 if (newsData.today.length === 0) {
                     todayEl.innerHTML = `<div class="text-[#666] text-xs py-1">No high-impact events today.</div>`;
                 } else {
-                    todayEl.innerHTML = newsData.today.map(item => `
-                        <div class="flex justify-between text-xs py-0.5">
-                            <span class="text-[#888] w-32 flex-shrink-0 whitespace-nowrap">${item.date}</span>
-                            <span class="flex-1">${item.event} <span class="text-[#666]">(${item.currency})</span></span>
-                            <span class="text-[#888] w-10 text-right">${item.time}</span>
-                        </div>
-                    `).join('');
+                    todayEl.innerHTML = newsData.today.map(item => {
+                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        return `
+                        <div class="flex gap-2 text-xs py-0.5 items-baseline">
+                            <span class="text-[#888] font-mono w-11 flex-shrink-0 tabular-nums">${item.time}</span>
+                            <span class="flex-1 ${impactClass}">${item.event} <span class="text-[#666] text-[10px]">(${item.currency})</span></span>
+                        </div>`;
+                    }).join('');
                 }
             }
             
-            // THIS WEEK
+            // THIS WEEK - wider box, bigger text, dates + event (spread out)
             const thisWeekEl = document.getElementById('news-this-week');
             const thisWeekLabel = document.getElementById('this-week-label');
             if (thisWeekLabel) {
@@ -1016,17 +1027,20 @@
                 if (newsData.thisWeek.length === 0) {
                     thisWeekEl.innerHTML = `<div class="text-[#666] text-xs py-1">No more relevant events this week.</div>`;
                 } else {
-                    thisWeekEl.innerHTML = newsData.thisWeek.map(item => `
-                        <div class="flex justify-between text-xs py-0.5">
-                            <span class="text-[#888] w-32 flex-shrink-0 whitespace-nowrap">${item.date}</span>
-                            <span class="flex-1">${item.event} <span class="text-[#666]">(${item.currency})</span></span>
-                            <span class="text-[#888] w-10 text-right">${item.time}</span>
-                        </div>
-                    `).join('');
+                    thisWeekEl.innerHTML = newsData.thisWeek.map(item => {
+                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        // Use shorter date feel if wanted, but keep nice format since box is wider
+                        return `
+                        <div class="flex gap-2 text-sm py-0.5 items-baseline">
+                            <span class="text-[#888] w-28 flex-shrink-0 text-xs">${item.date}</span>
+                            <span class="flex-1 ${impactClass}">${item.event} <span class="text-[#666] text-xs">(${item.currency})</span></span>
+                            <span class="text-[#888] text-xs w-9 text-right tabular-nums">${item.time}</span>
+                        </div>`;
+                    }).join('');
                 }
             }
             
-            // NEXT WEEK
+            // NEXT WEEK - narrower, simple list only (no dates/times), abbreviations/events
             const nextWeekEl = document.getElementById('news-next-week');
             const nextWeekLabel = document.getElementById('next-week-label');
             if (nextWeekLabel) {
@@ -1039,13 +1053,11 @@
                 if (newsData.nextWeek.length === 0) {
                     nextWeekEl.innerHTML = `<div class="text-[#666] text-xs py-1">No events scheduled yet.</div>`;
                 } else {
-                    nextWeekEl.innerHTML = newsData.nextWeek.map(item => `
-                        <div class="flex justify-between text-xs py-0.5">
-                            <span class="text-[#888] w-32 flex-shrink-0 whitespace-nowrap">${item.date}</span>
-                            <span class="flex-1">${item.event} <span class="text-[#666]">(${item.currency})</span></span>
-                            <span class="text-[#888] w-10 text-right">${item.time}</span>
-                        </div>
-                    `).join('');
+                    nextWeekEl.innerHTML = newsData.nextWeek.map(item => {
+                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        // Simple list: just the event + currency, colored by impact. No date/time as requested.
+                        return `<div class="py-0.5 ${impactClass}">• ${item.event} <span class="text-[#666] text-[10px]">(${item.currency})</span></div>`;
+                    }).join('');
                 }
             }
         }

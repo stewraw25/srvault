@@ -63,12 +63,17 @@
         }
 
         .fixed-chart-container {
-            height: 500px;
+            height: 320px;
             border: 2px solid #4a4a4a;
             border-radius: 12px;
             background: #0a0a0a;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .fixed-chart-container {
+                height: 500px;
+            }
         }
 
         .nav-active {
@@ -234,60 +239,60 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                 <!-- Clock 1: UTC -->
-                <div class="dark-card rounded-2xl p-3">
+                <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-utc" class="clock-face"></div>
                     </div>
                     <div class="text-center mt-1">
                         <div class="flex items-center justify-center gap-x-1.5">
-                            <span class="text-lg">🌍</span>
-                            <span class="font-semibold tracking-wider text-sm">UTC</span>
+                            <span class="text-base md:text-lg">🌍</span>
+                            <span class="font-semibold tracking-wider text-xs md:text-sm">UTC</span>
                         </div>
-                        <div id="time-utc" class="font-mono text-[#e0e0e0] text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-utc" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
                     </div>
                 </div>
                 
                 <!-- Clock 2: LONDON -->
-                <div class="dark-card rounded-2xl p-3">
+                <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-london" class="clock-face"></div>
                     </div>
                     <div class="text-center mt-1">
                         <div class="flex items-center justify-center gap-x-1.5">
-                            <span class="text-lg">🇬🇧</span>
-                            <span class="font-semibold tracking-wider text-sm">LONDON</span>
+                            <span class="text-base md:text-lg">🇬🇧</span>
+                            <span class="font-semibold tracking-wider text-xs md:text-sm">LONDON</span>
                         </div>
-                        <div id="time-london" class="font-mono text-[#e0e0e0] text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-london" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
                     </div>
                 </div>
                 
                 <!-- Clock 3: NEW YORK -->
-                <div class="dark-card rounded-2xl p-3">
+                <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-ny" class="clock-face"></div>
                     </div>
                     <div class="text-center mt-1">
                         <div class="flex items-center justify-center gap-x-1.5">
-                            <span class="text-lg">🇺🇸</span>
-                            <span class="font-semibold tracking-wider text-sm">NEW YORK</span>
+                            <span class="text-base md:text-lg">🇺🇸</span>
+                            <span class="font-semibold tracking-wider text-xs md:text-sm">NEW YORK</span>
                         </div>
-                        <div id="time-ny" class="font-mono text-[#e0e0e0] text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-ny" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
                     </div>
                 </div>
                 
                 <!-- Clock 4: TOKYO -->
-                <div class="dark-card rounded-2xl p-3">
+                <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-tokyo" class="clock-face"></div>
                     </div>
                     <div class="text-center mt-1">
                         <div class="flex items-center justify-center gap-x-1.5">
-                            <span class="text-lg">🇯🇵</span>
-                            <span class="font-semibold tracking-wider text-sm">TOKYO</span>
+                            <span class="text-base md:text-lg">🇯🇵</span>
+                            <span class="font-semibold tracking-wider text-xs md:text-sm">TOKYO</span>
                         </div>
-                        <div id="time-tokyo" class="font-mono text-[#e0e0e0] text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-tokyo" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
                     </div>
                 </div>
             </div>
@@ -297,56 +302,58 @@
         <div class="h-[3px] bg-gradient-to-r from-[#a8a8a8] via-[#f0f0f0] to-[#a8a8a8] rounded-full my-5 shadow-sm"></div>
 
         <!-- HEADER -->
-        <div class="flex justify-between items-center mb-6">
-            <!-- Logo + Strapline (centered in left third, above KEY box) -->
-            <div class="w-1/3 flex justify-center">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-2">
+            <!-- Logo + Strapline -->
+            <div class="w-full md:w-1/3 flex justify-center md:justify-start">
                 <div>
                     <img src="sr_vault_assets/logos/sr_vault_main_black_gbp_brighter.jpg" 
                          alt="SR Vault" 
-                         class="h-48 w-auto rounded-xl shadow-lg object-contain"
+                         class="h-32 md:h-48 w-auto rounded-xl shadow-lg object-contain"
                          onerror="this.src='https://picsum.photos/id/1011/192/192'; this.style.borderRadius='12px'">
-                    <div class="text-[10px] text-[#888] mt-1 text-center">Everyday People. Making Serious CASH.</div>
+                    <div class="text-[10px] text-[#888] mt-1 text-center md:text-left">Everyday People. Making Serious CASH.</div>
                 </div>
             </div>
 
-            <!-- Title (centered in middle third) -->
-            <div class="w-1/3 text-center">
-                <div class="premium-font text-[42px] font-extrabold tracking-[3.5px] text-[#d0d0d0]">TRADING PANEL</div>
+            <!-- Title -->
+            <div class="w-full md:w-1/3 text-center order-first md:order-none">
+                <div class="premium-font text-3xl md:text-[42px] font-extrabold tracking-[3.5px] text-[#d0d0d0]">TRADING PANEL</div>
             </div>
 
-            <!-- Live Price Action (TradingView - this is the real live market price) -->
-            <div class="text-right">
-                <div style="margin-bottom: 2px; font-size: 9px; color: #888; text-align: right; letter-spacing: 1px;">LIVE GBPJPY</div>
-                <div style="height:90px; width:220px; opacity:0.95; border: 1px solid #333; border-radius: 6px; overflow: hidden;">
-                    <!-- TradingView Widget BEGIN -->
-                    <div class="tradingview-widget-container">
-                        <div class="tradingview-widget-container__widget"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                        {
-                        "symbol": "FX_IDC:GBPJPY",
-                        "width": "220",
-                        "height": "90",
-                        "locale": "en",
-                        "dateRange": "1D",
-                        "colorTheme": "dark",
-                        "trendLineColor": "#22c55e",
-                        "underLineColor": "rgba(34, 197, 94, 0.15)",
-                        "isTransparent": true,
-                        "autosize": false,
-                        "largeChartUrl": ""
-                        }
-                        </script>
+            <!-- Live Price Action (TradingView) -->
+            <div class="w-full md:w-1/3 flex justify-center md:justify-end">
+                <div class="text-right">
+                    <div style="margin-bottom: 2px; font-size: 9px; color: #888; text-align: right; letter-spacing: 1px;">LIVE GBPJPY</div>
+                    <div style="height:70px; width:160px; opacity:0.95; border: 1px solid #333; border-radius: 6px; overflow: hidden;">
+                        <!-- TradingView Widget BEGIN -->
+                        <div class="tradingview-widget-container">
+                            <div class="tradingview-widget-container__widget"></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                            {
+                            "symbol": "FX_IDC:GBPJPY",
+                            "width": "160",
+                            "height": "70",
+                            "locale": "en",
+                            "dateRange": "1D",
+                            "colorTheme": "dark",
+                            "trendLineColor": "#22c55e",
+                            "underLineColor": "rgba(34, 197, 94, 0.15)",
+                            "isTransparent": true,
+                            "autosize": false,
+                            "largeChartUrl": ""
+                            }
+                            </script>
+                        </div>
+                        <!-- TradingView Widget END -->
                     </div>
-                    <!-- TradingView Widget END -->
                 </div>
             </div>
         </div>
 
         <!-- MAIN CONTENT: 3 aligned boxes -->
-        <div class="flex gap-6 items-stretch">
+        <div class="flex flex-col md:flex-row gap-6 items-stretch">
             
             <!-- Box 1: KEY TRADING INFORMATION (side box) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[480px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[320px] md:min-h-[480px]">
                 <div class="mb-4">
                     <div class="font-semibold text-base tracking-wider">KEY TRADING INFORMATION</div>
                     <div class="flex items-center gap-x-2 mt-1">
@@ -420,7 +427,7 @@
             </div>
 
             <!-- Box 2: CURRENT CHART (main focus - wider) -->
-            <div class="flex-[1.8] flex flex-col min-h-[500px]">
+            <div class="flex-[1.8] flex flex-col min-h-[320px] md:min-h-[500px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm text-center">CURRENT CHART WE ARE TRADING</div>
                 </div>
@@ -446,7 +453,7 @@
             </div>
             
             <!-- Box 3: ZeroHedge Widget -->
-            <div class="flex-[1] dark-card rounded-2xl p-3 flex flex-col min-h-[480px]">
+            <div class="flex-[1] dark-card rounded-2xl p-3 flex flex-col min-h-[320px] md:min-h-[480px]">
                 <div class="flex items-center justify-between mb-2 px-1">
                     <div>
                         <span class="font-semibold">@zerohedge</span>
@@ -634,16 +641,19 @@
         }
 
         function startClocks() {
-            // Create SVGs
+            // Create SVGs - smaller on mobile
             const clockIds = ['clock-utc', 'clock-london', 'clock-ny', 'clock-tokyo'];
             const timeIds = ['time-utc', 'time-london', 'time-ny', 'time-tokyo'];
             const timezones = ['UTC', 'Europe/London', 'America/New_York', 'Asia/Tokyo'];
             const labels = ['UTC', 'LONDON', 'NEW YORK', 'TOKYO'];
 
+            const isMobile = window.innerWidth < 640;
+            const clockSize = isMobile ? 80 : 170;
+
             clockIds.forEach((id, index) => {
                 const container = document.getElementById(id);
                 if (container) {
-                    container.innerHTML = createClockSVG(id);
+                    container.innerHTML = createClockSVG(id, clockSize);
                     drawTicks(id);
                 }
             });

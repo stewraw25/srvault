@@ -188,25 +188,29 @@
         }
         #day-status.expanded {
             border-radius: 12px;
-            padding: 14px 16px;
-            width: 420px;
-            max-height: 480px;
+            padding: 16px 20px;
+            width: 520px;
+            max-height: 520px;
             overflow-y: auto;
-            font-size: 1rem;
+            font-size: 1.05rem;
+            text-align: center;
         }
         #day-status .rules {
-            font-size: 0.9rem;
-            margin-top: 10px;
+            font-size: 0.95rem;
+            margin-top: 12px;
             opacity: 0.95;
-            line-height: 1.35;
-            text-align: left;
+            line-height: 1.4;
+            text-align: center;
         }
         #day-status .rules ul {
-            margin: 4px 0;
-            padding-left: 18px;
+            margin: 6px 0;
+            padding-left: 0;
+            list-style-position: inside;
         }
         #day-status .rules li {
-            margin-bottom: 3px;
+            margin-bottom: 4px;
+            text-align: left;
+            margin-left: 20px;
         }
         #day-status .toggle {
             font-size: 0.7rem;
@@ -1424,21 +1428,17 @@
                     const hasHighImpactToday = events.some(e => (e.impact || 'MEDIUM') === 'HIGH');
                     if (hasHighImpactToday && !specialDayType) {
                         const yellowRules = `
-                            <b>DO NOT enter a trade 4 Hours Before a News Release</b><br>
-                            Do not enter trades during this period to avoid unpredictable market movements.<br><br>
-                            <b>Trading After News Release</b>
-                            <ul>
-                                <li>BEATS CONSENSUS ⬆️ → Wait for next Zone in Favour of Consensus &amp; Trade it</li>
-                                <li>MATCHES CONSENSUS ➡️ → Trade as normal but Zone 100+ PIPS away</li>
-                                <li>MISSES CONSENSUS ⬇️ → Wait for next Zone in Favour of Consensus &amp; Trade it</li>
-                            </ul>
-                            <b>*** DO NOT TRADE AGAINST CONSENSUS ***</b><br><br>
-                            <b>Reversal Trades on High-Impact News Days</b>
-                            <ul>
-                                <li>Enter only after 8PM UK time</li>
-                                <li>Typically play out the following day</li>
-                                <li>Or avoid &amp; get into pullback next day</li>
-                            </ul>
+                            <strong>DO NOT enter a trade 4 Hours Before a News Release</strong><br>
+                            Avoid trades during this period to prevent unpredictable moves.<br><br>
+                            <strong>Trading After News Release</strong><br><br>
+                            <strong>BEATS CONSENSUS ⬆️</strong> — Wait for next Zone in favour of consensus &amp; trade it<br><br>
+                            <strong>MATCHES CONSENSUS ➡️</strong> — Trade as normal (Zone must be 100+ pips away)<br><br>
+                            <strong>MISSES CONSENSUS ⬇️</strong> — Wait for next Zone in favour of consensus &amp; trade it<br><br>
+                            <strong>*** DO NOT TRADE AGAINST CONSENSUS ***</strong><br><br>
+                            <strong>Reversal Trades on High-Impact News Days</strong><br><br>
+                            • Enter reversals only after 8PM UK time<br>
+                            • These typically play out the following day<br>
+                            • Or avoid &amp; look for pullback the next day
                         `;
                         setDayStatus('YELLOW', 'YELLOW DAY — HIGH IMPACT NEWS', yellowRules);
                     }
@@ -1447,12 +1447,10 @@
                     // Banner stays short with the day label.
                     if (specialDayType) {
                         const reversalRules = `
-                            <b>Reversal Trades on High-Impact News Days</b>
-                            <ul>
-                                <li>Enter only after 8PM UK time</li>
-                                <li>Typically play out the following day</li>
-                                <li>Or avoid &amp; get into pullback next day</li>
-                            </ul>
+                            <strong>Reversal Trades on High-Impact News Days</strong><br><br>
+                            • Enter reversals only after 8PM UK time<br><br>
+                            • These typically play out the following day<br><br>
+                            • Or avoid trading &amp; look for pullback the next day
                         `;
                         setDayStatus('RED', `${specialDayType} DAY`, reversalRules);
                     }

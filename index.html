@@ -803,8 +803,9 @@
         //   1. Get a FREE key (30s): https://finnhub.io/register
         //   2. Replace the placeholder below with your key.
         // Primary: Finnhub REST (quotes) + WebSocket (real trades pushed live).
-        // Fallback (no key): frankfurter.app polled every 5s + visual feedback.
-        // The "updated Xs ago" + flashes give the price action feel.
+        // Fallback (no key): frankfurter.dev (public rates) polled every 5s + forced visual flash/ring on every update.
+        // The "updated Xs ago" + flashes + small TV widget give the live price action feel.
+        // For accurate real-time market ticks in the number, set your free Finnhub key below.
         const FINNHUB_KEY = 'YOUR_FREE_FINNHUB_KEY_HERE'; // <-- REPLACE THIS for real live ticks
 
         let lastFetchedPrice = null;
@@ -895,16 +896,15 @@
                 .catch(() => fetchFrankfurterPrice(showFlash));
         }
 
-        // Better no-key fallback (exchangerate.host - more frequent updates than frankfurter for live feel)
-        // For true real-time, replace FINNHUB_KEY with free key from https://finnhub.io/register
+        // No-key fallback using the current working frankfurter.dev (public rates, updates periodically)
+        // For true real-time ticks in the number, get free key from https://finnhub.io/register and set FINNHUB_KEY
         function fetchFrankfurterPrice(showFlash = false) {
-            fetch('https://api.exchangerate.host/latest?base=GBP&symbols=JPY')
+            fetch('https://api.frankfurter.dev/v1/latest?from=GBP&to=JPY')
                 .then(r => r.ok ? r.json() : null)
                 .then(data => {
                     if (data && data.rates && data.rates.JPY) {
                         updatePriceDisplay(data.rates.JPY, showFlash, 'fallback');
                     } else {
-                        // ultimate fallback
                         updatePriceDisplay(214.65, showFlash, 'default');
                     }
                 })

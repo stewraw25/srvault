@@ -429,7 +429,7 @@
                 </div>
                 
                 <div class="text-[9px] text-[#666] mt-2 px-1 flex items-center justify-between">
-                    <span>Auto-refreshes from JSON every 5 min</span>
+                    <span>Auto-refreshes from JSON</span>
                     <span id="zh-last-refresh" class="text-[#555]"></span>
                 </div>
             </div>
@@ -1041,7 +1041,8 @@
             if (container) {
                 container.style.opacity = '0.5';
             }
-            updateZHLastRefresh(); // immediate feedback that we refreshed the widget
+            const tsEl = document.getElementById('zh-last-refresh');
+            if (tsEl) tsEl.textContent = 'refreshing...';
             // Force a fresh load from the JSON (this is how the widget stays up to date)
             loadZeroHedgeFromJSON();
 
@@ -1074,13 +1075,29 @@
                 });
         }
 
+        let zhLastRefreshTimestamp = null;
+
         function updateZHLastRefresh() {
             const el = document.getElementById('zh-last-refresh');
             if (!el) return;
-            const now = new Date();
-            const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            el.textContent = `refreshed ${time}`;
-            localStorage.setItem('sr_zh_last_refresh', now.toISOString());
+            zhLastRefreshTimestamp = Date.now();
+            el.textContent = 'refreshed just now';
+            localStorage.setItem('sr_zh_last_refresh', new Date().toISOString());
+        }
+
+        function startZHRefreshAgeUpdater() {
+            setInterval(() => {
+                const el = document.getElementById('zh-last-refresh');
+                if (!el || !zhLastRefreshTimestamp) return;
+                const secs = Math.floor((Date.now() - zhLastRefreshTimestamp) / 1000);
+                if (secs < 30) {
+                    el.textContent = 'refreshed just now';
+                } else if (secs < 90) {
+                    el.textContent = `refreshed ${secs}s ago`;
+                } else {
+                    el.textContent = `refreshed ${Math.floor(secs / 60)}m ago`;
+                }
+            }, 10000); // update the "ago" text every 10s
         }
 
         // News data — now populated dynamically from the JSON produced by sr_vault_news_scan.py
@@ -1386,7 +1403,8 @@
             renderZeroHedge();
             updateZHLastRefresh(); // show initial load time
             loadZeroHedgeFromJSON();
-            setInterval(loadZeroHedgeFromJSON, 5 * 60 * 1000); // every 5 min (or faster via bot push)
+            setInterval(loadZeroHedgeFromJSON, 2 * 60 * 1000); // every 2 min for fresher feel
+            startZHRefreshAgeUpdater(); // makes the "refreshed X ago" text live
             
             // News (economic) — now fully dynamic from the JSON
             loadNewsFromJSON();          // populates newsData + re-renders tables + timestamp
@@ -1426,7 +1444,8 @@
         window.refreshZeroHedge = function() {
             const container = document.getElementById('zerohedge-list');
             if (container) container.style.opacity = '0.5';
-            updateZHLastRefresh(); // immediate feedback
+            const tsEl = document.getElementById('zh-last-refresh');
+            if (tsEl) tsEl.textContent = 'refreshing...';
             loadZeroHedgeFromJSON();
             setTimeout(() => {
                 const c = document.getElementById('zerohedge-list');

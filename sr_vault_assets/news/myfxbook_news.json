@@ -1,23 +1,7 @@
 {
   "last_fetched": "2026-06-10T10:03:55.551223",
-  "source": "Auto (Forex Factory + filters)",
+  "source": "Auto (Forex Factory + strict user whitelist)",
   "events": [
-    {
-      "date": "2026-06-08",
-      "time_utc": "00:03",
-      "event": "Final GDP Price Index y/y",
-      "currency": "JPY",
-      "impact": "LOW",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-08",
-      "time_utc": "00:03",
-      "event": "Final GDP q/q",
-      "currency": "JPY",
-      "impact": "LOW",
-      "source": "Forex Factory"
-    },
     {
       "date": "2026-06-10",
       "time_utc": "12:30",
@@ -51,35 +35,11 @@
       "source": "Forex Factory"
     },
     {
-      "date": "2026-06-10",
-      "time_utc": "18:00",
-      "event": "Federal Budget Balance",
-      "currency": "USD",
-      "impact": "LOW",
-      "source": "Forex Factory"
-    },
-    {
       "date": "2026-06-12",
       "time_utc": "06:00",
-      "event": "GDP m/m",
+      "event": "GDP (MoM)",
       "currency": "GBP",
       "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
-      "time_utc": "08:30",
-      "event": "Consumer Inflation Expectations",
-      "currency": "GBP",
-      "impact": "LOW",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
-      "time_utc": "14:00",
-      "event": "Prelim UoM Inflation Expectations",
-      "currency": "USD",
-      "impact": "MEDIUM",
       "source": "Forex Factory"
     }
   ]

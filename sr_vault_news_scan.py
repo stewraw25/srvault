@@ -34,14 +34,32 @@ NEWS_CACHE_PATH = os.path.join(SCRIPT_DIR, "sr_vault_assets", "news", "myfxbook_
 
 os.makedirs(os.path.dirname(NEWS_CACHE_PATH), exist_ok=True)
 
-# Exact match rules (expanded for real calendar titles)
-RELEVANT_KEYWORDS = [
-    "NFP", "NON-FARM", "NONFARM", "PAYROLL", "EMPLOYMENT SITUATION",
-    "BOE", "BANK OF ENGLAND", "MPC", "RATE DECISION",
-    "INFLATION", "CPI", "CORE CPI", "RPI",
-    "GDP",
-    "FED", "FOMC", "POWELL", "INTEREST RATE DECISION", "FEDERAL RESERVE",
-    "TARIFF", "TARIFFS", "TRADE WAR", "TARIFF ANNOUNCEMENT",
+# =============================================================================
+# STRICT USER WHITELIST — ONLY THESE EVENTS WILL EVER APPEAR IN THE PANEL
+# =============================================================================
+# These are the *only* news events you have mentioned as relevant for your GBPJPY trading.
+# Everything else (even if high impact or in USD/GBP/JPY) is filtered as completely irrelevant.
+#
+# To update: 
+#   1. Ask me "list the news events I want" or paste the exact titles from Forex Factory.
+#   2. I will update this list.
+#   3. Re-run the script or let the GitHub Action do it.
+#
+# Event titles should be as close as possible to the official Forex Factory title (case-insensitive match).
+
+STRICT_WHITELIST_EVENTS = [
+    # US CPI variants (high impact for risk / USD)
+    "CPI (MoM)",
+    "Core CPI (MoM)",
+    "CPI (YoY)",
+    "Core CPI (YoY)",
+    # GBP GDP (key for GBPJPY)
+    "GDP (MoM)",
+    "GDP q/q",
+    # Add any others you have specifically mentioned below (exact titles only)
+    # "BOE Rate Decision",
+    # "FOMC Statement",
+    # "Non-Farm Payrolls",
 ]
 
 RELEVANT_CURRENCIES = {"USD", "GBP", "JPY", "JAPAN", "UK", "UNITED KINGDOM"}
@@ -49,10 +67,11 @@ RELEVANT_CURRENCIES = {"USD", "GBP", "JPY", "JAPAN", "UK", "UNITED KINGDOM"}
 def is_gbpjpy_relevant(event: str, currency: str) -> bool:
     if not event or not currency:
         return False
-    text = f"{event} {currency}".upper()
     if currency.upper() not in RELEVANT_CURRENCIES:
         return False
-    return any(kw in text for kw in RELEVANT_KEYWORDS)
+    text = event.upper()
+    # Strict whitelist only — no broad keywords anymore
+    return any(wh.upper() in text for wh in STRICT_WHITELIST_EVENTS)
 
 def country_to_currency(country: str) -> str:
     c = (country or "").upper()

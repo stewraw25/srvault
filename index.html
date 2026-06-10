@@ -120,6 +120,11 @@
             border: 1px solid #f87171;
         }
 
+        .status-yellow {
+            background: linear-gradient(90deg, #3f2a00, #854d0e);
+            border: 1px solid #facc15;
+        }
+
         /* News cards accent for TODAY (yellow day theme) */
         .news-today {
             border-top: 4px solid #facc15;
@@ -806,18 +811,24 @@
                 if (status === 'RED') {
                     container.className = `status-red`;
                     container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${reason}</span>`;
+                } else if (status === 'YELLOW') {
+                    container.className = `status-yellow`;
+                    container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 ${reason}</span>`;
                 } else {
                     container.className = `status-green`;
                     container.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> <span>🟢 ${reason}</span>`;
                 }
             }
             
-            // Full-width green bar under the top 3 boxes - more visible across the page
+            // Full-width bar under the top 3 boxes - more visible across the page
             const banner = document.getElementById('day-status-banner');
             if (banner) {
                 if (status === 'RED') {
                     banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
                     banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${reason}`;
+                } else if (status === 'YELLOW') {
+                    banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                    banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 ${reason}`;
                 } else {
                     banner.className = `status-green text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
                     banner.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> 🟢 ${reason}`;
@@ -990,6 +1001,22 @@
 
                     // make sure the timestamp span is fresh
                     showLastNewsRefresh();
+
+                    // Yellow day: if there are HIGH impact events today, update the day status bar + widget to yellow
+                    // This makes the full-width bar and floating widget reflect "YELLOW DAY" when news warrants caution
+                    const hasHighImpactToday = todayEvents.some(e => e.impact === 'HIGH');
+                    if (hasHighImpactToday) {
+                        const banner = document.getElementById('day-status-banner');
+                        const container = document.getElementById('day-status');
+                        if (banner) {
+                            banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                            banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 YELLOW DAY — HIGH IMPACT NEWS`;
+                        }
+                        if (container) {
+                            container.className = `status-yellow`;
+                            container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 YELLOW DAY</span>`;
+                        }
+                    }
                 })
                 .catch(() => {
                     // network or file not found — render whatever static/demo data is present

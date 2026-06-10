@@ -1,0 +1,12 @@
+{
+  "last_updated": "2026-06-10T00:00:00Z",
+  "trend": "bullish",
+  "account": {
+    "open_trades": 2,
+    "pending_orders": 1,
+    "risk_per_trade_pct": 1.0,
+    "balance": 10000,
+    "current_pl": 0
+  },
+  "notes": "Bot or scheduled scripts can update this file. Panel will prefer values here over localStorage for the 'site' view. Manual edits in the UI still saved to browser LS for personal overrides."
+}

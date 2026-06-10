@@ -1,0 +1,45 @@
+name: Update Economic News JSON (Hourly)
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to commit the updated JSON
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for commit
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Run news scan in auto mode (uses Forex Factory public feed + filters)
+        # The --auto flag makes the script use the built-in FF fetcher instead of
+        # waiting for manual RESEARCHED_EVENTS (perfect for CI / always-on refresh).
+        # It still respects the same relevance rules and writes the exact JSON the panel consumes.
+        run: python sr_vault_news_scan.py --auto
+
+      - name: Commit & push updated JSON (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sr_vault_assets/news/myfxbook_news.json
+          if git diff --cached --quiet; then
+            echo "No changes to news JSON"
+          else
+            git commit -m "chore: hourly auto-update economic news JSON (via GitHub Action + FF feed)"
+            git push
+          fi

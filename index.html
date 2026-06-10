@@ -172,13 +172,37 @@
             right: 16px;
             z-index: 9999;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
-            white-space: nowrap;
             font-size: 0.875rem;
-            padding: 10px 16px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            max-width: 320px;
+            transition: all 0.2s ease;
+            background: inherit;
+            border: 1px solid;
+        }
+        #day-status.collapsed {
             border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding: 8px 14px;
+            white-space: nowrap;
+        }
+        #day-status.expanded {
+            border-radius: 12px;
+            padding: 10px 12px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+        #day-status .rules {
+            font-size: 0.72rem;
+            margin-top: 6px;
+            opacity: 0.95;
+            line-height: 1.25;
+            text-align: left;
+        }
+        #day-status .toggle {
+            font-size: 0.7rem;
+            margin-left: 6px;
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -995,6 +1019,63 @@
             }
         }
 
+        function setDayStatus(status, shortLabel, fullRulesHTML = '') {
+            // Full-width banner (always clean short message)
+            const banner = document.getElementById('day-status-banner');
+            if (banner) {
+                let bannerHTML = '';
+                if (status === 'RED') {
+                    banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                    bannerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${shortLabel}`;
+                } else if (status === 'YELLOW') {
+                    banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                    bannerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 ${shortLabel}`;
+                } else {
+                    banner.className = `status-green text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                    bannerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> 🟢 ${shortLabel}`;
+                }
+                banner.innerHTML = bannerHTML;
+            }
+
+            // Floating collapsible widget
+            const container = document.getElementById('day-status');
+            if (container) {
+                container.className = `status-${status.toLowerCase()} collapsed`;
+                let widgetHTML = '';
+                if (status === 'RED') {
+                    widgetHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${shortLabel}</span>`;
+                } else if (status === 'YELLOW') {
+                    widgetHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 ${shortLabel}</span>`;
+                } else {
+                    widgetHTML = `<i class="fa-solid fa-check-circle mr-2"></i> <span>🟢 ${shortLabel}</span>`;
+                }
+
+                if (fullRulesHTML) {
+                    widgetHTML += `<span class="toggle">▼</span>`;
+                    container.dataset.rules = fullRulesHTML;
+                } else {
+                    container.dataset.rules = '';
+                }
+                container.innerHTML = widgetHTML;
+
+                if (!container.dataset.listenerAttached) {
+                    container.addEventListener('click', function(e) {
+                        if (!container.dataset.rules) return;
+                        if (container.classList.contains('collapsed')) {
+                            container.classList.remove('collapsed');
+                            container.classList.add('expanded');
+                            container.innerHTML = widgetHTML.replace('▼', '▲') + `<div class="rules">${container.dataset.rules}</div>`;
+                        } else {
+                            container.classList.remove('expanded');
+                            container.classList.add('collapsed');
+                            container.innerHTML = widgetHTML;
+                        }
+                    });
+                    container.dataset.listenerAttached = 'true';
+                }
+            }
+        }
+
         // Day status
         function updateDayStatus() {
             const today = new Date();
@@ -1023,35 +1104,7 @@
                 reason = 'No trading between 12 - 7pm';
             }
             
-            // Floating widget (bottom right pill - keep as the "normal trading floating widget")
-            const container = document.getElementById('day-status');
-            if (container) {
-                if (status === 'RED') {
-                    container.className = `status-red`;
-                    container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${reason}</span>`;
-                } else if (status === 'YELLOW') {
-                    container.className = `status-yellow`;
-                    container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 ${reason}</span>`;
-                } else {
-                    container.className = `status-green`;
-                    container.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> <span>🟢 ${reason}</span>`;
-                }
-            }
-            
-            // Full-width bar under the top 3 boxes - more visible across the page
-            const banner = document.getElementById('day-status-banner');
-            if (banner) {
-                if (status === 'RED') {
-                    banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${reason}`;
-                } else if (status === 'YELLOW') {
-                    banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    banner.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 ${reason}`;
-                } else {
-                    banner.className = `status-green text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    banner.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> 🟢 ${reason}`;
-                }
-            }
+            setDayStatus(status, reason);
         }
 
         // ZeroHedge posts (can be updated by asking Grok)
@@ -1261,59 +1314,36 @@
                     // make sure the timestamp span is fresh
                     showLastNewsRefresh();
 
-                    // Yellow day: if there are HIGH impact events today, update the day status bar + widget to yellow
-                    // This makes the full-width bar and floating widget reflect "YELLOW DAY" when news warrants caution
+                    // Yellow day: if there are HIGH impact events today, update the floating WIDGET (collapsible) with full rules.
+                    // The main banner stays short.
                     const hasHighImpactToday = todayEvents.some(e => e.impact === 'HIGH');
                     if (hasHighImpactToday && !specialDayType) {
-                        const banner = document.getElementById('day-status-banner');
-                        const container = document.getElementById('day-status');
-                        if (banner) {
-                            banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                            banner.innerHTML = `
-                                <i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 YELLOW DAY — HIGH IMPACT NEWS
-                                <div class="rules">
-                                    <b>DO NOT enter a trade 4 Hours Before a News Release</b><br>
-                                    Do not enter trades during this period to avoid unpredictable market movements.<br><br>
-                                    <b>Trading After News Release</b><br>
-                                    If News BEATS CONSENSUS ⬆️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br>
-                                    If News MATCHES CONSENSUS ➡️ - Trade as normal but Zone needs to be 100+ PIPS away<br>
-                                    If News MISSES CONSENSUS ⬇️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br><br>
-                                    *** DO NOT TRADE AGAINST CONSENSUS (Follow Reversal Trade Rules Below) ***<br><br>
-                                    <b>Reversal Trades on High-Impact News Days</b><br>
-                                    • Enter reversal trades only after 8PM UK time.<br>
-                                    • These reversals typically play out the following day<br>
-                                    • Or avoid trading and get into pullback next day
-                                </div>
-                            `;
-                        }
-                        if (container) {
-                            container.className = `status-yellow`;
-                            container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 YELLOW DAY</span>`;
-                        }
+                        const yellowRules = `
+                            <b>DO NOT enter a trade 4 Hours Before a News Release</b><br>
+                            Do not enter trades during this period to avoid unpredictable market movements.<br><br>
+                            <b>Trading After News Release</b><br>
+                            If News BEATS CONSENSUS ⬆️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br>
+                            If News MATCHES CONSENSUS ➡️ - Trade as normal but Zone needs to be 100+ PIPS away<br>
+                            If News MISSES CONSENSUS ⬇️ - Wait for next Zone in Favour of Consensus &amp; Trade it<br><br>
+                            *** DO NOT TRADE AGAINST CONSENSUS (Follow Reversal Trade Rules Below) ***<br><br>
+                            <b>Reversal Trades on High-Impact News Days</b><br>
+                            • Enter reversal trades only after 8PM UK time.<br>
+                            • These reversals typically play out the following day<br>
+                            • Or avoid trading and get into pullback next day
+                        `;
+                        setDayStatus('YELLOW', 'YELLOW DAY — HIGH IMPACT NEWS', yellowRules);
                     }
 
-                    // NFP / BOE special volatile days - force RED bar with specific label + the reversal rules (main bar only)
-                    // These are high-impact and override yellow. Use the full reversal rules as specified.
+                    // NFP / BOE special volatile days - put full reversal rules into the collapsible WIDGET.
+                    // Banner stays short with the day label.
                     if (specialDayType) {
-                        const banner = document.getElementById('day-status-banner');
-                        const container = document.getElementById('day-status');
-                        const label = `${specialDayType} DAY`;
-                        if (banner) {
-                            banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                            banner.innerHTML = `
-                                <i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${label}
-                                <div class="rules">
-                                    <b>Reversal Trades on High-Impact News Days</b><br>
-                                    • Enter reversal trades only after 8PM UK time.<br>
-                                    • These reversals typically play out the following day<br>
-                                    • Or avoid trading and get into pullback next day
-                                </div>
-                            `;
-                        }
-                        if (container) {
-                            container.className = `status-red`;
-                            container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${label}</span>`;
-                        }
+                        const reversalRules = `
+                            <b>Reversal Trades on High-Impact News Days</b><br>
+                            • Enter reversal trades only after 8PM UK time.<br>
+                            • These reversals typically play out the following day<br>
+                            • Or avoid trading and get into pullback next day
+                        `;
+                        setDayStatus('RED', `${specialDayType} DAY`, reversalRules);
                     }
                 })
                 .catch(() => {

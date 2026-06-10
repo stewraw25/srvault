@@ -1109,6 +1109,8 @@
                     const thisWeekEvents = [];
                     const nextWeekEvents = [];
 
+                    let specialDayType = null;
+
                     events.forEach(e => {
                         const d = e.date; // YYYY-MM-DD
                         const impact = e.impact || 'MEDIUM';
@@ -1121,6 +1123,15 @@
                         };
                         if (d === todayStr) {
                             todayEvents.push({ time: e.time_utc, event: e.event, currency: e.currency, impact });
+                            // Check for special volatile days (NFP / BOE take precedence for red bar)
+                            if (!specialDayType) {
+                                const ev = (e.event || '').toUpperCase();
+                                if (ev.includes('NFP') || ev.includes('NON-FARM') || ev.includes('PAYROLL')) {
+                                    specialDayType = 'NFP';
+                                } else if (ev.includes('BOE') || ev.includes('BANK OF ENGLAND')) {
+                                    specialDayType = 'BOE';
+                                }
+                            }
                         } else if (d >= thisMondayStr && d <= thisWeekEndStr) {
                             thisWeekEvents.push(item);
                         } else if (d >= nextMondayStr && d <= nextWeekEndStr) {
@@ -1151,6 +1162,26 @@
                         if (container) {
                             container.className = `status-yellow`;
                             container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 YELLOW DAY</span>`;
+                        }
+                    }
+
+                    // NFP / BOE special volatile days - force RED bar with specific label + flashing rule (main bar only)
+                    // These override yellow if present. The rule "No trading after 9am..." flashes only for these two.
+                    if (specialDayType) {
+                        const banner = document.getElementById('day-status-banner');
+                        const container = document.getElementById('day-status');
+                        const label = `${specialDayType} DAY`;
+                        const rule = 'No trading after 9am on the day or until 9am the next day';
+                        if (banner) {
+                            banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
+                            banner.innerHTML = `
+                                <i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${label}
+                                <div class="text-xs mt-1 font-normal animate-pulse">${rule}</div>
+                            `;
+                        }
+                        if (container) {
+                            container.className = `status-red`;
+                            container.innerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${label}</span>`;
                         }
                     }
                 })

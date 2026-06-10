@@ -56,8 +56,14 @@ STRICT_WHITELIST_EVENTS = [
     # GBP GDP (key for GBPJPY)
     "GDP (MoM)",
     "GDP q/q",
+    # NFP and BOE - special volatile days with custom red bar treatment
+    "NFP",
+    "Non-Farm Payrolls",
+    "BOE",
+    "Bank of England",
+    "MPC",
+    "Rate Decision",
     # Add any others you have specifically mentioned below (exact titles only)
-    # "BOE Rate Decision",
     # "FOMC Statement",
     # "Non-Farm Payrolls",
 ]

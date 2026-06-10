@@ -188,17 +188,17 @@
         }
         #day-status.expanded {
             border-radius: 12px;
-            padding: 12px 14px;
-            width: 380px;
-            max-height: 420px;
+            padding: 14px 16px;
+            width: 420px;
+            max-height: 480px;
             overflow-y: auto;
-            font-size: 0.95rem;
+            font-size: 1rem;
         }
         #day-status .rules {
-            font-size: 0.82rem;
-            margin-top: 8px;
+            font-size: 0.9rem;
+            margin-top: 10px;
             opacity: 0.95;
-            line-height: 1.3;
+            line-height: 1.35;
             text-align: left;
         }
         #day-status .rules ul {
@@ -1055,7 +1055,6 @@
             // Floating collapsible widget
             const container = document.getElementById('day-status');
             if (container) {
-                container.className = `status-${status.toLowerCase()} collapsed`;
                 let widgetHTML = '';
                 if (status === 'RED') {
                     widgetHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${shortLabel}</span>`;
@@ -1064,6 +1063,26 @@
                 } else {
                     widgetHTML = `<i class="fa-solid fa-check-circle mr-2"></i> <span>🟢 ${shortLabel}</span>`;
                 }
+
+                const prevStatus = container.dataset.currentStatus || '';
+                const prevLabel = container.dataset.currentLabel || '';
+                container.dataset.currentStatus = status;
+                container.dataset.currentLabel = shortLabel;
+
+                // If status hasn't changed, don't force the widget back to collapsed
+                // (preserve user's expanded state). Only refresh rules if they changed.
+                if (prevStatus === status && prevLabel === shortLabel) {
+                    if (fullRulesHTML && container.dataset.rules !== fullRulesHTML) {
+                        container.dataset.rules = fullRulesHTML;
+                        if (container.classList.contains('expanded')) {
+                            const base = widgetHTML.replace('▼', '▲');
+                            container.innerHTML = base + `<div class="rules">${fullRulesHTML}</div>`;
+                        }
+                    }
+                    return;
+                }
+
+                container.className = `status-${status.toLowerCase()} collapsed`;
 
                 if (fullRulesHTML) {
                     widgetHTML += `<span class="toggle">▼</span>`;

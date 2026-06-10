@@ -384,7 +384,7 @@
                 </div>
                 
                 <div class="text-[9px] text-[#666] mt-2 px-1">
-                    Latest posts • Click refresh or ask Grok to update
+                    Auto-refreshes from JSON every 5 min • Click refresh or tell Grok new posts
                 </div>
             </div>
             
@@ -698,7 +698,7 @@
         // without needing to ask Grok to refresh.
         let lastFetchedPrice = null;
 
-        function fetchLivePrice() {
+        function fetchLivePrice(showFlash = false) {
             fetch('https://api.frankfurter.app/latest?from=GBP&to=JPY')
                 .then(r => {
                     if (!r.ok) throw new Error('fetch failed');
@@ -707,27 +707,37 @@
                 .then(data => {
                     const rate = data.rates.JPY;
                     const input = document.getElementById('gbpjpy-price');
-                    if (input && document.activeElement !== input) {
-                        // Don't stomp on the field if the user is actively typing
-                        input.value = rate.toFixed(2);
-                    }
                     const deltaEl = document.getElementById('gbpjpy-delta');
+
+                    if (input && document.activeElement !== input) {
+                        input.value = rate.toFixed(2);
+                        if (showFlash) {
+                            input.style.color = '#4ade80';
+                            setTimeout(() => { if (input) input.style.color = '#f0f0f0'; }, 450);
+                        }
+                    }
+
                     if (deltaEl && lastFetchedPrice !== null) {
                         const change = rate - lastFetchedPrice;
                         const pct = (change / lastFetchedPrice) * 100;
                         const sign = change >= 0 ? '+' : '';
                         deltaEl.textContent = `${sign}${change.toFixed(2)} • ${sign}${pct.toFixed(2)}%`;
                         deltaEl.style.color = change >= 0 ? '#4ade80' : '#f87171';
+                    } else if (deltaEl && lastFetchedPrice === null) {
+                        // First successful fetch — show a subtle "live" state
+                        deltaEl.textContent = 'live • auto-updating';
+                        deltaEl.style.color = '#4ade80';
                     }
+
                     lastFetchedPrice = rate;
                 })
                 .catch(() => {
-                    // keep whatever is there (manual or previous)
+                    // silent fail — keep last value
                 });
         }
 
         // Start live updates
-        setInterval(fetchLivePrice, 60000); // every minute
+        setInterval(() => fetchLivePrice(true), 60000); // every minute, flash on auto updates
 
         // Chart upload
         function handleChartUpload(event) {
@@ -846,23 +856,20 @@
         }
 
         function refreshZeroHedge() {
-            // In a real standalone version, this could fetch from an API.
-            // For now, we tell the user to ask Grok to update the list (or the bot/script
-            // that maintains zerohedge.json can push a fresh version).
             const container = document.getElementById('zerohedge-list');
             if (container) {
-                container.innerHTML = `
-                    <div class="text-center py-4 text-xs text-[#777]">
-                        <i class="fa-solid fa-sync fa-spin mr-2"></i>
-                        To get the absolute latest posts, ask Grok:<br>
-                        <span class="text-[#aaa]">"update zerohedge posts in the panel"</span>
-                    </div>
-                `;
+                container.style.opacity = '0.5';
             }
-            
+            // Force a fresh load from the JSON (this is how the widget stays up to date)
+            loadZeroHedgeFromJSON();
+
+            // brief visual feedback then re-render
             setTimeout(() => {
-                if (container) renderZeroHedge();
-            }, 1400);
+                if (container) {
+                    container.style.opacity = '1';
+                    renderZeroHedge();
+                }
+            }, 600);
         }
 
         // Load ZeroHedge posts from a JSON file (same shape as the old array).
@@ -1124,9 +1131,10 @@
             
             // Price
             loadPrice();
-            fetchLivePrice(); // initial live price load (public API, no manual refresh needed)
-            // Quick second fetch so we have a delta on the very first paint
-            setTimeout(fetchLivePrice, 1500);
+            fetchLivePrice(); // initial live price load
+            // Two rapid fetches at startup so we get a real delta + visual flash very quickly
+            setTimeout(() => fetchLivePrice(true), 1200);
+            setTimeout(() => fetchLivePrice(true), 2800);
             const priceInput = document.getElementById('gbpjpy-price');
             if (priceInput) {
                 priceInput.addEventListener('keypress', function(e) {
@@ -1143,7 +1151,7 @@
             // ZeroHedge (will prefer zerohedge.json if present — maintained by bot/script)
             renderZeroHedge();
             loadZeroHedgeFromJSON();
-            setInterval(loadZeroHedgeFromJSON, 15 * 60 * 1000); // every 15 min (or faster via bot)
+            setInterval(loadZeroHedgeFromJSON, 5 * 60 * 1000); // every 5 min (or faster via bot push)
             
             // News (economic) — now fully dynamic from the JSON
             loadNewsFromJSON();          // populates newsData + re-renders tables + timestamp
@@ -1182,9 +1190,15 @@
         
         window.refreshZeroHedge = function() {
             const container = document.getElementById('zerohedge-list');
-            if (container) {
-                container.innerHTML = `<div class="text-center py-3 text-xs text-[#666]">Ask Grok: "update zerohedge posts in the panel"</div>`;
-            }
+            if (container) container.style.opacity = '0.5';
+            loadZeroHedgeFromJSON();
+            setTimeout(() => {
+                const c = document.getElementById('zerohedge-list');
+                if (c) {
+                    c.style.opacity = '1';
+                    renderZeroHedge();
+                }
+            }, 600);
         };
     </script>
 </body>

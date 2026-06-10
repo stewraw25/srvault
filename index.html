@@ -716,13 +716,13 @@
         }
 
         // ============ LIVE GBPJPY PRICE (real market data) ============
-        // Switched to Finnhub for actual live price action (real-time quotes + trades).
-        // 1. Get a FREE key (30 seconds): https://finnhub.io/register
-        // 2. Paste it below. The key is only used for your personal panel.
-        // Primary = Finnhub REST (reliable quote) + WebSocket (true tick-by-tick live updates when market open).
-        // Fallback = frankfurter.app (no key).
-        // This gives real price action instead of slow aggregated rates.
-        const FINNHUB_KEY = 'YOUR_FREE_FINNHUB_KEY_HERE'; // <-- REPLACE THIS
+        // For *actual* live price action (tick-by-tick during market hours):
+        //   1. Get a FREE key (30s): https://finnhub.io/register
+        //   2. Replace the placeholder below with your key.
+        // Primary: Finnhub REST (quotes) + WebSocket (real trades pushed live).
+        // Fallback (no key): frankfurter.app polled every 5s + visual feedback.
+        // The "updated Xs ago" + flashes give the price action feel.
+        const FINNHUB_KEY = 'YOUR_FREE_FINNHUB_KEY_HERE'; // <-- REPLACE THIS for real live ticks
 
         let lastFetchedPrice = null;
         let lastPriceUpdate = null;
@@ -869,14 +869,15 @@
             setTimeout(() => fetchFinnhubPrice(true), 1200);
             setTimeout(() => fetchFinnhubPrice(true), 2800);
 
-            // Regular polling (every 15s) — good safety net + works even if WS drops
+            // Regular polling — every 5s for fallback (makes price action feel more live even without key)
+            // With Finnhub key + WS this becomes near real-time ticks.
             setInterval(() => {
                 if (FINNHUB_KEY && !FINNHUB_KEY.includes('YOUR_FREE')) {
                     fetchFinnhubPrice(false);
                 } else {
                     fetchFrankfurterPrice(false);
                 }
-            }, 15000);
+            }, 5000);
 
             startPriceAgeUpdater();
 

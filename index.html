@@ -1147,14 +1147,20 @@
                 if (!container.dataset.listenerAttached) {
                     container.addEventListener('click', function(e) {
                         if (!container.dataset.rules) return;
+                        const currentLabel = container.dataset.currentLabel || '';
+                        const status = container.dataset.currentStatus || 'green';
+                        let icon = '🟢';
+                        if (status === 'RED') icon = '🔴';
+                        else if (status === 'YELLOW') icon = '🟡';
+                        const shortBase = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>${icon} ${currentLabel}</span>`;
                         if (container.classList.contains('collapsed')) {
                             container.classList.remove('collapsed');
                             container.classList.add('expanded');
-                            container.innerHTML = widgetHTML.replace('▼', '▲') + `<div class="rules">${container.dataset.rules}</div>`;
+                            container.innerHTML = shortBase + `<span class="toggle">▲</span><div class="rules">${container.dataset.rules}</div>`;
                         } else {
                             container.classList.remove('expanded');
                             container.classList.add('collapsed');
-                            container.innerHTML = widgetHTML;
+                            container.innerHTML = shortBase + `<span class="toggle">▼</span>`;
                         }
                     });
                     container.dataset.listenerAttached = 'true';

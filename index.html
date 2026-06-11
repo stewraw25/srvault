@@ -79,8 +79,8 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
-        /* Note: aspect-ratio removed so the chart image can fill the full available height of the middle box (flex-1).
-           The img uses object-cover to fill while maintaining its own aspect (may crop edges if needed). */
+        /* Chart display height constrained ~30% smaller to stop tall/stretched look. 
+           Image uses w-full + max-h + object-cover to fill width while capping vertical size (crops tall source image vertically as needed). */
 
         .nav-active {
             color: #22c55e;
@@ -365,9 +365,9 @@
         <div class="flex flex-col md:flex-row gap-6 items-stretch">
             
             <!-- Box 1: KEY TRADING INFORMATION (side box) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
-                <div class="mb-4">
-                    <div class="font-semibold text-base tracking-wider">KEY TRADING INFORMATION</div>
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[235px]">
+                <div class="mb-2 px-1">
+                    <div class="font-semibold tracking-wider text-sm">KEY TRADING INFORMATION</div>
                     <div class="flex items-center gap-x-2 mt-1">
                         <span class="text-sm text-[#888]">Pair Currently Trading:</span> 
                         <span class="font-bold text-[#22c55e] text-2xl tracking-tight">GBPJPY</span>
@@ -375,11 +375,11 @@
                 </div>
 
                 <!-- Current Trend -->
-                <div class="mb-5">
-                    <div class="text-xs uppercase tracking-widest text-[#888] mb-1.5">Current Trend</div>
+                <div class="mb-3">
+                    <div class="text-xs uppercase tracking-widest text-[#888] mb-1">Current Trend</div>
                     <div class="flex items-center gap-x-3">
                         <select id="trend-select" onchange="updateTrend()"
-                                class="bg-[#111] border border-[#333] text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#555]">
+                                class="bg-[#111] border border-[#333] text-white rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-[#555]">
                             <option value="bullish">🟢 Bullish</option>
                             <option value="bearish">🔴 Bearish</option>
                             <option value="neutral">🟡 Neutral</option>
@@ -393,24 +393,24 @@
 
                 <!-- Account Snapshot -->
                 <div class="flex-1">
-                    <div class="text-xs uppercase tracking-widest text-[#888] mb-2">Account Snapshot</div>
+                    <div class="text-xs uppercase tracking-widest text-[#888] mb-1">Account Snapshot</div>
                     <div class="space-y-[1px] text-sm">
                         <!-- Consistent value column for easy reading and alignment -->
-                        <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
+                        <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Open Trades</span>
                             <div class="w-[7rem] text-right font-mono font-semibold">
                                 <input id="open-trades" type="number" value="2" 
                                        class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
+                        <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Pending Orders</span>
                             <div class="w-[7rem] text-right font-mono font-semibold">
                                 <input id="pending-orders" type="number" value="1" 
                                        class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
+                        <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Risk PER Trade</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <input id="risk-per-trade" type="number" value="1" step="0.1"
@@ -418,7 +418,7 @@
                                 <span class="text-[#888]">%</span>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-1.5 px-1 border-b border-[#222]">
+                        <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Account Balance</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <span class="text-[#888] w-3 text-right">$</span>
@@ -426,7 +426,7 @@
                                        class="bg-transparent w-[4.25rem] text-right focus:outline-none">
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-1.5 px-1">
+                        <div class="flex justify-between items-center py-1 px-1">
                             <span class="text-[#aaa]">Current Trade P/L</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <span class="text-[#888] w-3 text-right">$</span>
@@ -439,18 +439,18 @@
             </div>
 
             <!-- Box 2: CURRENT CHART (main focus - wider) -->
-            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
+            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[235px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm text-center">CURRENT CHART WE ARE TRADING</div>
                 </div>
                 
                 <div id="chart-container"
-                     class="fixed-chart-container flex-1 flex items-center justify-center relative cursor-pointer w-full"
+                     class="fixed-chart-container flex-shrink-0 flex items-center justify-center relative cursor-pointer w-full max-h-[180px] h-[180px]"
                      onclick="document.getElementById('chart-upload').click()">
                     
                     <img id="chart-image" 
                          src="sr_vault_assets/charts/current_weekly_chart.png" 
-                         class="w-full h-full object-cover rounded-lg"
+                         class="w-full max-h-[180px] object-cover rounded-lg"
                          alt="Current Weekly Chart"
                          onerror="this.src='https://picsum.photos/id/1015/600/420';">
                     
@@ -461,11 +461,11 @@
                 
                 <input type="file" id="chart-upload" accept="image/*" class="hidden" onchange="handleChartUpload(event)">
                 
-                <div class="text-[10px] text-[#888] mt-1.5 px-1 text-center">Last updated: Today</div>
+                <div class="text-[10px] text-[#888] mt-auto pt-1.5 px-1 text-center">Last updated: Today</div>
             </div>
             
             <!-- Box 3: Live News Panel (replaces ZeroHedge / X feed) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[235px]">
                 <div class="flex items-center justify-between mb-2 px-1">
                     <div>
                         <span class="font-semibold">LIVE FINANCIAL NEWS</span>
@@ -482,7 +482,7 @@
                     <!-- Populated by JS - top financial stories from Google News, auto-refreshes -->
                 </div>
                 
-                <div class="text-[9px] text-[#666] mt-2 px-1 flex items-center justify-between">
+                <div class="text-[9px] text-[#666] mt-auto pt-1 px-1 flex items-center justify-between">
                     <span>Refreshes every 60s from Google News</span>
                     <span id="live-news-last-refresh" class="text-[#555]"></span>
                 </div>

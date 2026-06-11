@@ -73,18 +73,14 @@
 
         .fixed-chart-container {
             width: 100%;
-            aspect-ratio: 4 / 3;   /* consistent landscape-ish ratio so tall portrait screenshots never blow up vertically */
             border: 2px solid #4a4a4a;
             border-radius: 12px;
             background: #0a0a0a;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
-        @media (max-width: 767px) {
-            .fixed-chart-container {
-                aspect-ratio: 16 / 9;  /* slightly wider on mobile for better use of space */
-            }
-        }
+        /* Note: aspect-ratio removed so the chart image can fill the full available height of the middle box (flex-1).
+           The img uses object-cover to fill while maintaining its own aspect (may crop edges if needed). */
 
         .nav-active {
             color: #22c55e;
@@ -157,6 +153,11 @@
         .impact-high { color: #f87171; font-weight: 500; }
         .impact-medium { color: #facc15; }
         .impact-low { color: #4ade80; }
+
+        /* Day type colours for news text - all default YELLOW, BOE/NFP ORANGE, EOM/EOQ RED */
+        .news-yellow { color: #facc15; }
+        .news-orange { color: #fb923c; }
+        .news-red { color: #f87171; }
 
         /* Full-width day status banner under the three main boxes - more visible across the page */
         #day-status-banner {
@@ -361,10 +362,10 @@
         </div>
 
         <!-- MAIN CONTENT: 3 aligned boxes -->
-        <div class="flex flex-col md:flex-row gap-6 items-start">
+        <div class="flex flex-col md:flex-row gap-6 items-stretch">
             
             <!-- Box 1: KEY TRADING INFORMATION (side box) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[320px] md:min-h-[480px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
                 <div class="mb-4">
                     <div class="font-semibold text-base tracking-wider">KEY TRADING INFORMATION</div>
                     <div class="flex items-center gap-x-2 mt-1">
@@ -438,13 +439,13 @@
             </div>
 
             <!-- Box 2: CURRENT CHART (main focus - wider) -->
-            <div class="flex-[1.8] flex flex-col min-h-[320px] md:min-h-[500px]">
+            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm text-center">CURRENT CHART WE ARE TRADING</div>
                 </div>
                 
                 <div id="chart-container"
-                     class="fixed-chart-container flex items-center justify-center relative cursor-pointer w-full"
+                     class="fixed-chart-container flex-1 flex items-center justify-center relative cursor-pointer w-full"
                      onclick="document.getElementById('chart-upload').click()">
                     
                     <img id="chart-image" 
@@ -464,11 +465,11 @@
             </div>
             
             <!-- Box 3: Live News Panel (replaces ZeroHedge / X feed) -->
-            <div class="flex-[1] dark-card rounded-2xl p-3 flex flex-col min-h-[320px] md:min-h-[480px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[336px]">
                 <div class="flex items-center justify-between mb-2 px-1">
                     <div>
-                        <span class="font-semibold">LIVE NEWS</span>
-                        <span class="text-[10px] text-[#888] ml-1">• High-impact • Auto</span>
+                        <span class="font-semibold">LIVE FINANCIAL NEWS</span>
+                        <span class="text-[10px] text-[#888] ml-1">• Google News • Auto</span>
                     </div>
                     <button onclick="refreshLiveNews()" 
                             class="text-[10px] flex items-center gap-x-1 text-[#888] hover:text-white transition-colors">
@@ -478,11 +479,11 @@
                 </div>
                 
                 <div id="live-news-list" class="flex-1 space-y-1 text-xs overflow-auto pr-1">
-                    <!-- Populated by JS - constantly refreshing economic/market headlines -->
+                    <!-- Populated by JS - top financial stories from Google News, auto-refreshes -->
                 </div>
                 
                 <div class="text-[9px] text-[#666] mt-2 px-1 flex items-center justify-between">
-                    <span>Refreshes every 60s</span>
+                    <span>Refreshes every 60s from Google News</span>
                     <span id="live-news-last-refresh" class="text-[#555]"></span>
                 </div>
             </div>
@@ -499,7 +500,7 @@
                 <div class="flex items-end justify-between mb-3 px-1">
                     <div>
                         <span class="font-semibold text-lg tracking-wider">RELEVANT NEWS — GBP / JPY FOCUS</span>
-                        <span class="ml-3 text-xs text-[#888]">via Grok Global Search <span id="news-last-refresh" class="text-[#666]"></span></span>
+                        <span class="ml-3 text-xs text-[#888]">Data: Forex Factory live + curated high-impact (GBP/JPY focus) <span id="news-last-refresh" class="text-[#666]"></span></span>
                     </div>
                     <button onclick="refreshNews()" 
                             class="text-xs flex items-center gap-x-1.5 bg-[#111] hover:bg-[#1a1a1a] px-3 py-1 rounded-2xl text-[#888] active:scale-[0.985]">
@@ -903,16 +904,15 @@
             setDayStatus(status, reason);
         }
 
-        // Live News panel (replacement for the old ZeroHedge/X feed widget).
-        // Pulls from the same auto-updated myfxbook_news.json (via sr_vault_news_scan.py + GitHub Action).
-        // Shows a compact, constantly refreshing list of recent high-impact headlines with flags.
-        // Polls every 60s so it feels "always refreshing".
+        // Live Financial News panel (replaces old economic calendar feed and previous ZeroHedge widget).
+        // Pulls curated top business/financial stories from Google News Business topic (markets, stocks, companies, economy, central banks).
+        // Uses free rss2json proxy for CORS-friendly RSS access (standard for static GitHub Pages).
+        // Auto-refreshes every 60s + age updater. Click title to open story. Strictly financial news only.
         let liveNewsItems = [
-            { time: "12:30", event: "CPI (MoM)", currency: "USD", impact: "HIGH" },
-            { time: "12:30", event: "Core CPI (MoM)", currency: "USD", impact: "HIGH" },
-            { time: "06:00", event: "GDP (MoM)", currency: "GBP", impact: "HIGH" },
-            { time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" }
-        ];
+    { title: "GBP/JPY holds gains as BoE rate cut bets ease", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" },
+    { title: "USD/JPY climbs on strong US data, eyes 155", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" },
+    { title: "EUR/USD steady ahead of ECB decision", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" }
+];
 
         function renderLiveNews() {
             const container = document.getElementById('live-news-list');
@@ -921,20 +921,19 @@
             container.innerHTML = '';
             
             if (!liveNewsItems || !liveNewsItems.length) {
-                container.innerHTML = '<div class="text-[#666] text-[10px] py-1">Loading live economic &amp; market headlines...</div>';
+                container.innerHTML = '<div class="text-[#666] text-[10px] py-1">Loading live financial news from Google...</div>';
                 return;
             }
             
             liveNewsItems.forEach(item => {
                 const div = document.createElement('div');
-                div.className = `bg-[#0f0f0f] border border-[#222] rounded-xl px-3 py-1.5 text-xs`;
-                const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
-                const flag = getNewsFlag(item.currency);
+                div.className = `bg-[#0f0f0f] border border-[#222] rounded-xl px-3 py-1.5 text-xs hover:bg-[#1a1a1a] transition-colors`;
+                const timeStr = item.pubDate ? new Date(item.pubDate).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
                 div.innerHTML = `
-                    <div class="flex gap-2 items-baseline">
-                        <span class="text-[#888] font-mono w-9 flex-shrink-0 tabular-nums text-[10px]">${item.time || ''}</span>
-                        <span class="flex-1 ${impactClass} leading-snug">${flag} ${item.event}</span>
-                    </div>
+                    <a href="${item.link}" target="_blank" rel="noopener" class="block text-[#ddd] leading-snug hover:text-[#3b82f6]">
+                        ${item.title}
+                    </a>
+                    <div class="text-[9px] text-[#666] mt-0.5">${item.source || 'Google News'} ${timeStr ? '• ' + timeStr : ''}</div>
                 `;
                 container.appendChild(div);
             });
@@ -945,7 +944,7 @@
             if (container) container.style.opacity = '0.6';
             const tsEl = document.getElementById('live-news-last-refresh');
             if (tsEl) tsEl.textContent = 'refreshing...';
-            loadLiveNewsFromJSON();
+            loadLiveNews();
             setTimeout(() => {
                 if (container) {
                     container.style.opacity = '1';
@@ -954,35 +953,39 @@
             }, 500);
         }
 
-        function loadLiveNewsFromJSON() {
-            const url = `sr_vault_assets/news/myfxbook_news.json?t=${Date.now()}`;
+        function loadLiveNews() {
+            // General financial news headlines from Google News (stocks, markets, finance, economy, wall street, etc.).
+            // Uses rss2json free proxy for CORS (no count param to avoid needing API key).
+            // Polls every 60s for near-live updates. This is separate from the curated economic calendar events.
+            // Only financial/general market news — not limited to your specific calendar list.
+            const rssUrl = 'https://news.google.com/rss/search?q=stocks+OR+markets+OR+finance+OR+economy+OR+%22wall+street%22+OR+dow+jones+when:1d&hl=en-US&gl=US&ceid=US:en';
+            const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
             fetch(url)
                 .then(r => r.ok ? r.json() : null)
-                .then(cache => {
-                    if (!cache || !cache.events || !cache.events.length) {
+                .then(data => {
+                    if (data && data.status === 'ok' && data.items && data.items.length) {
+                        liveNewsItems = data.items.slice(0, 8).map(item => ({
+                            title: item.title,
+                            link: item.link,
+                            pubDate: item.pubDate,
+                            source: item.author || 'Google News'
+                        }));
                         renderLiveNews();
                         updateLiveNewsLastRefresh();
-                        return;
+                    } else {
+                        if (!liveNewsItems.length) {
+                            const container = document.getElementById('live-news-list');
+                            if (container) container.innerHTML = '<div class="text-[#666] text-[10px] py-1">No recent financial headlines. Try Refresh.</div>';
+                        }
+                        updateLiveNewsLastRefresh();
                     }
-                    // Take the most recent high-impact / relevant items (sort newest first)
-                    const events = [...cache.events]
-                        .sort((a, b) => {
-                            if (a.date !== b.date) return b.date.localeCompare(a.date);
-                            return (b.time_utc || '').localeCompare(a.time_utc || '');
-                        })
-                        .slice(0, 9);  // latest ~9 headlines
-
-                    liveNewsItems = events.map(e => ({
-                        time: e.time_utc || '',
-                        event: e.event,
-                        currency: e.currency,
-                        impact: e.impact || 'MEDIUM'
-                    }));
-                    renderLiveNews();
-                    updateLiveNewsLastRefresh();
                 })
                 .catch(() => {
-                    renderLiveNews();
+                    const container = document.getElementById('live-news-list');
+                    if (container && !liveNewsItems.length) {
+                        container.innerHTML = '<div class="text-[#666] text-[10px] py-1">Unable to load live financial news (proxy issue). Try the Refresh button.</div>';
+                    }
                     updateLiveNewsLastRefresh();
                 });
         }
@@ -1054,16 +1057,25 @@
             return c; // fallback to code if unknown
         }
 
+        function getNewsDayClass(event) {
+            const ev = (event || '').toUpperCase();
+            if (ev.includes('BOE') || ev.includes('NFP') || ev.includes('NON-FARM') || ev.includes('PAYROLL')) {
+                return 'news-orange';
+            }
+            if (ev.includes('EOM') || ev.includes('END OF MONTH') || ev.includes('EOQ') || ev.includes('END OF QUARTER')) {
+                return 'news-red';
+            }
+            return 'news-yellow'; // default for all other (high impact) news events
+        }
+
         function loadNewsFromJSON() {
             // Loads from the JSON produced by sr_vault_news_scan.py (run via GitHub Action or locally).
             // The script maintains a hybrid "backend economic calendar":
-            //   - Live near-term from public Forex Factory this-week feed.
-            //   - Long-term (6 months) from the curated RESEARCHED_EVENTS list in the Python script
-            //     (your stable "calendar" — updated every couple of weeks via Grok research of official schedules).
-            // Only your strict high-impact GBPJPY/funded-trading events are included.
-            // Client-side bucketing here turns the flat list into TODAY / THIS WEEK / NEXT WEEK tables.
-            // This is why BOE rate decisions and GBP inflation now correctly appear in NEXT WEEK.
-            // Cache-bust (t=) so browser never serves a stale myfxbook_news.json that would make NEXT WEEK look wrong/empty.
+            //   - Live near-term from public Forex Factory JSON feed (this week).
+            //   - Long-term (6 months) from curated high-impact events in the Python script.
+            // Filters to relevant currencies (GBP/JPY/USD) + HIGH/MEDIUM impact only.
+            // Client-side bucketing (using fixed demo date 2026-06-10) turns it into TODAY / THIS WEEK / NEXT WEEK.
+            // Source note is shown in the UI header. Cache-bust added for freshness.
             fetch(`sr_vault_assets/news/myfxbook_news.json?t=${Date.now()}`)
                 .then(r => r.ok ? r.json() : null)
                 .then(cache => {
@@ -1128,7 +1140,25 @@
                         }
                     });
 
-                    newsData.today = todayEvents.sort((a, b) => a.time.localeCompare(b.time));
+                    // Dedup today events (the backend sometimes includes near-duplicates from FF + curated)
+                    const seenToday = new Set();
+                    const dedupedToday = [];
+                    todayEvents.forEach(e => {
+                        const key = e.time + '|' + e.event;
+                        if (!seenToday.has(key)) {
+                            seenToday.add(key);
+                            dedupedToday.push(e);
+                        }
+                    });
+                    newsData.today = dedupedToday.sort((a, b) => a.time.localeCompare(b.time));
+
+                    // Force TODAY to empty for the demo date (2026-06-10) because the CPI events from the calendar
+                    // were reported as incorrect. The realtime LIVE FINANCIAL NEWS panel (ForexLive/Google) is the
+                    // source for current headlines instead. Update this or the researched list if specific today events are desired.
+                    if (todayStr === '2026-06-10') {
+                        newsData.today = [];
+                    }
+
                     newsData.thisWeek = thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
                     // Next week: guarantee the important BOE + inflation events for the demo week of 15th June
@@ -1158,6 +1188,16 @@
                         ];
                     }
                     newsData.nextWeek = nextWeek;
+
+                    // STRICT: ONLY show the specific news events from the user's curated list (the ones given).
+                    // NOTHING ELSE from the full calendar or live feed.
+                    newsData.thisWeek = newsData.thisWeek.filter(e => e.event.includes('GDP (MoM)'));
+                    newsData.nextWeek = newsData.nextWeek.filter(e => 
+                        e.event.includes('BOE') || 
+                        e.event.includes('Inflation Rate') || 
+                        e.event.includes('CPI y/y') || 
+                        e.event.includes('Core CPI y/y')
+                    );
 
                     // also refresh the week labels (they are set inside renderNews)
                     renderNews();
@@ -1212,12 +1252,12 @@
                     todayEl.innerHTML = `<div class="text-[#666] text-sm py-1">No high-impact events today.</div>`;
                 } else {
                     todayEl.innerHTML = newsData.today.map(item => {
-                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        const dayClass = getNewsDayClass(item.event);
                         const flag = getNewsFlag(item.currency);
                         return `
                         <div class="flex gap-2 text-sm py-0.5 items-baseline">
                             <span class="text-[#888] font-mono w-11 flex-shrink-0 tabular-nums">${item.time}</span>
-                            <span class="flex-1 ${impactClass}">${flag} ${item.event}</span>
+                            <span class="flex-1 ${dayClass}">${flag} ${item.event}</span>
                         </div>`;
                     }).join('');
                 }
@@ -1237,13 +1277,13 @@
                     thisWeekEl.innerHTML = `<div class="text-[#666] text-sm py-1">No more relevant events this week.</div>`;
                 } else {
                     thisWeekEl.innerHTML = newsData.thisWeek.map(item => {
-                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        const dayClass = getNewsDayClass(item.event);
                         const flag = getNewsFlag(item.currency);
                         // Use shorter date feel if wanted, but keep nice format since box is wider
                         return `
                         <div class="flex gap-2 text-base py-0.5 items-baseline">
                             <span class="text-[#888] w-28 flex-shrink-0 text-sm">${item.date}</span>
-                            <span class="flex-1 ${impactClass}">${flag} ${item.event}</span>
+                            <span class="flex-1 ${dayClass}">${flag} ${item.event}</span>
                             <span class="text-[#888] text-sm w-9 text-right tabular-nums">${item.time}</span>
                         </div>`;
                     }).join('');
@@ -1276,10 +1316,10 @@
                     nextWeekEl.innerHTML = `<div class="text-[#666] text-sm py-1">No events scheduled yet.</div>`;
                 } else {
                     nextWeekEl.innerHTML = nextItems.map(item => {
-                        const impactClass = item.impact === 'HIGH' ? 'impact-high' : item.impact === 'LOW' ? 'impact-low' : 'impact-medium';
+                        const dayClass = getNewsDayClass(item.event);
                         const flag = getNewsFlag(item.currency);
-                        // Simple list: just the event + flag, colored by impact. No date/time as requested.
-                        return `<div class="py-0.5 ${impactClass} text-sm">• ${flag} ${item.event}</div>`;
+                        // Simple list: just the event + flag, colored by day type (yellow default, orange for BOE/NFP, red for EOM/EOQ).
+                        return `<div class="py-0.5 ${dayClass} text-sm">• ${flag} ${item.event}</div>`;
                     }).join('');
                 }
             }
@@ -1289,10 +1329,7 @@
         // (🇬🇧 for GBP, 🇯🇵 for JPY, 🇺🇸 for USD) instead of text codes like (GBP).
         // This runs sync on script load so the tables are never blank or showing old codes.
         // loadNewsFromJSON() will later override with full data from the JSON.
-        newsData.today = [
-            { time: "12:30", event: "CPI (MoM)", currency: "USD", impact: "HIGH" },
-            { time: "12:30", event: "Core CPI (MoM)", currency: "USD", impact: "HIGH" }
-        ];
+        newsData.today = [];  // Forced empty for demo "today" (2026-06-10) as user reported the CPI events as incorrect. Add specific events here if needed.
         newsData.thisWeek = [
             { date: "Friday 12th June 2026", time: "06:00", event: "GDP (MoM)", currency: "GBP", impact: "HIGH" }
         ];
@@ -1393,13 +1430,13 @@
             // Day status
             updateDayStatus();
             
-            // Live News (new constantly-refreshing panel replacing the old ZeroHedge/X feed).
-            // Pulls the latest high-impact items from the auto-updated economic calendar JSON.
-            // Refreshes every 60s + live "X ago" text so it feels always current.
+            // Live Financial News (new constantly-refreshing panel replacing the old ZeroHedge/X feed).
+            // Pulls top financial stories from Google News (markets, stocks, economy, finance only).
+            // Refreshes every 60s + live "X ago" text.
             renderLiveNews();
             updateLiveNewsLastRefresh();
-            loadLiveNewsFromJSON();
-            setInterval(loadLiveNewsFromJSON, 60 * 1000);
+            loadLiveNews();
+            setInterval(loadLiveNews, 60 * 1000);
             startLiveNewsRefreshAgeUpdater();
             
             // News (economic structured) — today / this week / next week from the same JSON source
@@ -1433,7 +1470,7 @@
             if (container) container.style.opacity = '0.6';
             const tsEl = document.getElementById('live-news-last-refresh');
             if (tsEl) tsEl.textContent = 'refreshing...';
-            loadLiveNewsFromJSON();
+            loadLiveNews();
             setTimeout(() => {
                 const c = document.getElementById('live-news-list');
                 if (c) {

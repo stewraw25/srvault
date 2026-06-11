@@ -1,6 +1,6 @@
 # SR VAULT Daily Trading Panel — Live on GitHub Pages
 
-**Goal achieved**: A real public URL for the panel. Live GBPJPY price updates itself every minute (no more asking to refresh). News + ZeroHedge refresh automatically (GitHub Action hourly for calendar + JSON polling in the page + your bot later for ZeroHedge). Full-width day status bar + big chart box that fills the area. All projects organized (srvault is isolated here).
+**Goal achieved**: A real public URL for the panel. Live GBPJPY price updates itself every minute (no more asking to refresh). News + ZeroHedge refresh automatically (GitHub Action hourly via public feeds + client JSON polling + age indicators). Full-width day status bar + big chart box that fills the area. All projects organized (srvault is isolated here). No more manual "tell Grok to paste posts" for the ZH feed.
 
 **Live site (after you complete the 3 easy steps below)**: https://stewraw25.github.io/srvault/
 
@@ -11,14 +11,14 @@ Everything is static + client JS + one scheduled Action. No server to maintain.
 - Full panel in `index.html` (root for Pages):
   - Automatic live price: `fetchLivePrice()` hits public frankfurter.app on load + every 60s. Updates the big number + green/red delta. Manual override still works via the UPDATE button (localStorage).
   - News tables (TODAY / THIS WEEK / NEXT WEEK) load dynamically from `sr_vault_assets/news/myfxbook_news.json` + re-render with nice dates + week labels. Polls every 5 min.
-  - ZeroHedge widget loads from `sr_vault_assets/news/zerohedge.json` (falls back gracefully). Polls every 15 min.
+  - ZeroHedge widget loads from `sr_vault_assets/news/zerohedge.json` (falls back gracefully). Client polls every 2 min (cache-busted). GitHub Action + public RSS keeps the file fresh hourly — no more manual updates or "tell Grok".
   - Full-width green/red day-status banner right under the 3 top boxes (plus the floating pill).
   - Chart box is wider, fixed 500px tall, image uses object-cover to fill the square nicely.
   - Clocks, trend, account inputs, everything else from the original.
 - Git repo initialized + committed (all assets, the Python scanner, the GitHub Action workflow).
 - Fixed the news script so `python sr_vault_news_scan.py --auto` works from this folder both locally and in CI (no more hard-coded wrong path).
 - Added `.gitignore`.
-- GitHub Action (`.github/workflows/update-news.yml`) runs every hour (`0 * * * *`), runs the scanner in --auto mode (uses public Forex Factory feed + same filters you had), commits the fresh JSON if changed.
+- GitHub Action (`.github/workflows/update-news.yml`) runs every hour (`0 * * * *`): updates economic news (via public Forex Factory + strict whitelist) **and** ZeroHedge feed (via their public RSS at cms.zerohedge.com/fullrss2.xml). Commits the JSON(s) if changed. The panel's client polling (2 min for ZH, 5 min for news) + "refreshed X ago" makes everything feel live.
 - README + instructions.
 
 Remote is already set to your `stewraw25/srvault`.
@@ -75,7 +75,7 @@ Local double-click of `index.html` still works exactly the same for offline/test
 ## Keeping things fresh going forward (no more manual Grok refreshes for routine stuff)
 - **Price**: 100% automatic forever.
 - **Economic calendar**: GitHub Action does it hourly. The page polls the JSON every 5 min so you see updates without reload.
-- **ZeroHedge posts**: The widget reads the JSON. To update it, just tell me here "update zerohedge with these 6 posts" (or paste the titles/times/urls) and I'll give you the exact JSON snippet + the one-line command to put it in the file and push. Or your future bot can maintain the file + push.
+- **ZeroHedge posts**: Fully automated now. The GitHub Action runs `update_zerohedge.py` (public RSS) hourly and commits `zerohedge.json`. The widget's built-in 2-min poll + "refreshed X ago" + manual refresh button keep it live. No more telling Grok or manual JSON edits for routine refreshes. (If you ever want to force a run: GitHub repo → Actions → "Update News + ZeroHedge Feed" → Run workflow.)
 - **Chart screenshot (middle box)**: Send the new image here in chat (or a link). I'll give you the exact file path + the Terminal lines to replace `sr_vault_assets/charts/current_weekly_chart.png` and push the change. The site updates in ~1 min.
 - **Account numbers / trend**: Still editable live in the panel (localStorage per browser). Later we can wire `panel-state.json` so your bot can drive those too.
 

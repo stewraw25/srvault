@@ -365,7 +365,7 @@
         <div class="flex flex-col md:flex-row gap-6 items-stretch">
             
             <!-- Box 1: KEY TRADING INFORMATION (side box) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[270px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm">KEY TRADING INFORMATION</div>
                     <div class="flex items-center gap-x-2 mt-1">
@@ -439,18 +439,18 @@
             </div>
 
             <!-- Box 2: CURRENT CHART (main focus - wider) -->
-            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[270px]">
+            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm text-center">CURRENT CHART WE ARE TRADING</div>
                 </div>
                 
                 <div id="chart-container"
-                     class="fixed-chart-container flex-shrink-0 flex items-center justify-center relative cursor-pointer w-full max-h-[220px] h-[220px]"
+                     class="fixed-chart-container flex-shrink-0 flex items-center justify-center relative cursor-pointer w-full max-h-[260px] h-[260px]"
                      onclick="document.getElementById('chart-upload').click()">
                     
                     <img id="chart-image" 
                          src="sr_vault_assets/charts/current_weekly_chart.png" 
-                         class="w-full max-h-[220px] object-cover rounded-lg"
+                         class="w-full max-h-[260px] object-cover rounded-lg"
                          alt="Current Weekly Chart"
                          onerror="this.src='https://picsum.photos/id/1015/600/420';">
                     
@@ -465,7 +465,7 @@
             </div>
             
             <!-- Box 3: Live News Panel (replaces ZeroHedge / X feed) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[270px]">
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
                 <div class="flex items-center justify-between mb-2 px-1">
                     <div>
                         <span class="font-semibold">LIVE FINANCIAL NEWS</span>

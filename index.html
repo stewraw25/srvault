@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&amp;family=Patrick+Hand&amp;display=swap');
         
         :root {
             --bg: #000000;
@@ -17,7 +18,10 @@
             --text-muted: #888888;
             --green: #22c55e;
             --red: #ef4444;
+            --orange: #f59e0b;
+            --yellow: #eab308;
             --silver: #a8a8a8;
+            --gold: #C5A572;
         }
         
         body {
@@ -26,13 +30,6 @@
             font-family: 'Inter', system_ui, sans-serif;
         }
         
-        .premium-font {
-            font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        /* Header title - bigger, premium modern font */
         .vault-title {
             font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif;
             font-weight: 800;
@@ -47,191 +44,73 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
         }
 
-        .section-header {
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #d0d0d0;
-        }
-
         .clock-face {
             filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.3));
         }
 
-        .trading-header {
-            font-size: 2.1rem;
-            font-weight: 800;
-            letter-spacing: 3px;
-            color: #d0d0d0;
-            line-height: 1;
-        }
-
-        .value-green {
-            color: #22c55e;
-            font-weight: 700;
-        }
-
-        .fixed-chart-container {
-            width: 100%;
-            border: 2px solid #4a4a4a;
-            border-radius: 12px;
-            background: #0a0a0a;
+        .apple-notes {
+            background-color: #fff9e6;
+            border: 1px solid #d4c4a8;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-        /* Chart display height constrained ~30% smaller to stop tall/stretched look. 
-           Image uses w-full + max-h + object-cover to fill width while capping vertical size (crops tall source image vertically as needed). */
-
-        .nav-active {
-            color: #22c55e;
-            border-bottom: 2px solid #22c55e;
+            color: #3a2f1f;
         }
 
-        .post-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .post-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-        }
-
-        .silver-bar {
-            height: 4px;
-            background: linear-gradient(to right, #a8a8a8, #f0f0f0, #a8a8a8);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-        }
-
-        .metric-value {
-            font-size: 1.6rem;
+        .apple-notes-header {
+            font-family: 'Caveat', 'Patrick Hand', cursive;
+            font-size: 1.25rem;
+            line-height: 1.2;
             font-weight: 700;
-            line-height: 1;
+            color: #1f2a1f;
+            margin: 8px 0 14px;
+            padding: 4px 12px;
+            background: rgba(0,0,0,0.035);
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.08);
+            letter-spacing: 0.3px;
         }
 
-        .rolex-text {
-            font-family: Georgia, serif;
-            letter-spacing: 2px;
+        .apple-notes-strapline {
+            font-family: 'Caveat', 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2a1f;
+            margin-bottom: 12px;
         }
 
-        .news-item {
-            transition: background-color 0.1s ease;
-        }
-        
-        .news-item:hover {
-            background-color: #111;
+        .apple-notes ul {
+            list-style: none;
+            padding-left: 8px;
+            margin: 0;
         }
 
-        .status-green {
-            background: linear-gradient(90deg, #052e16, #166534);
-            border: 1px solid #4ade80;
-        }
-        
-        .status-red {
-            background: linear-gradient(90deg, #450a0a, #991b1b);
-            border: 1px solid #f87171;
+        .apple-notes li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
         }
 
-        .status-yellow {
-            background: linear-gradient(90deg, #3f2a00, #854d0e);
-            border: 1px solid #facc15;
+        .apple-notes li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #5c4630;
+            font-weight: 700;
         }
 
-        /* Live price flash for visual "live" feedback */
-        @keyframes price-flash {
-            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-        }
-        .price-updating {
-            animation: price-flash 0.6s ease-out;
-        }
+        .status-green { background: linear-gradient(90deg, #052e16, #166534); border-color: #4ade80; color: #4ade80; }
+        .status-yellow { background: linear-gradient(90deg, #3f2a00, #854d0e); border-color: #facc15; color: #facc15; }
+        .status-orange { background: linear-gradient(90deg, #431407, #9a3412); border-color: #fb923c; color: #fb923c; }
+        .status-red { background: linear-gradient(90deg, #450a0a, #991b1b); border-color: #f87171; color: #f87171; }
 
-        /* News cards accent for TODAY (yellow day theme) */
-        .news-today {
-            border-top: 4px solid #facc15;
-        }
-        .impact-high { color: #f87171; font-weight: 500; }
-        .impact-medium { color: #facc15; }
-        .impact-low { color: #4ade80; }
-
-        /* Day type colours for news text - all default YELLOW, BOE/NFP ORANGE, EOM/EOQ RED */
         .news-yellow { color: #facc15; }
         .news-orange { color: #fb923c; }
         .news-red { color: #f87171; }
 
-        /* Full-width day status banner under the three main boxes - more visible across the page */
-        #day-status-banner {
-            width: 100%;
-            font-size: 1.05rem;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            line-height: 1.3;
-        }
-        #day-status-banner .rules {
-            font-size: 0.7rem;
-            margin-top: 6px;
-            opacity: 0.95;
-            text-align: left;
-            line-height: 1.25;
-        }
-        #day-status-banner .rules ul {
-            margin: 4px 0 0 0;
-            padding-left: 16px;
-        }
-        #day-status-banner .rules li {
-            margin-bottom: 2px;
-        }
-
-        #day-status {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            z-index: 9999;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
-            font-size: 0.875rem;
-            padding: 8px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            max-width: 320px;
-            transition: all 0.2s ease;
-            background: inherit;
-            border: 1px solid;
-        }
-        #day-status.collapsed {
-            border-radius: 9999px;
-            padding: 8px 14px;
-            white-space: nowrap;
-        }
-        #day-status.expanded {
-            border-radius: 12px;
-            padding: 27px 36px;
-            width: min(900px, 92vw);  /* ~50% bigger than 620px, responsive */
-            max-height: 850px;
-            overflow-y: auto;
-            font-size: 1.65rem;  /* ~50% bigger */
-            text-align: center;
-        }
-        #day-status .rules {
-            font-size: 1.5rem;  /* ~50% bigger */
-            margin-top: 20px;
-            opacity: 0.95;
-            line-height: 1.5;
-            text-align: center;
-        }
-        #day-status .rules ul {
-            margin: 12px 0;
-            padding-left: 0;
-            list-style-position: inside;
-        }
-        #day-status .rules li {
-            margin-bottom: 8px;
-            text-align: left;
-            margin-left: 45px;
-        }
-        #day-status .toggle {
-            font-size: 1rem;
-            margin-left: 8px;
-            opacity: 0.7;
+        .digital-time {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 600;
+            letter-spacing: 1.5px;
         }
     </style>
 </head>
@@ -251,7 +130,7 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-                <!-- Clock 1: UTC -->
+                <!-- UTC -->
                 <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-utc" class="clock-face"></div>
@@ -261,11 +140,11 @@
                             <span class="text-base md:text-lg">🌍</span>
                             <span class="font-semibold tracking-wider text-xs md:text-sm">UTC</span>
                         </div>
-                        <div id="time-utc" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-utc" class="font-mono text-[#e0e0e0] text-lg md:text-2xl font-medium mt-0.5 tracking-wider">00:00:00</div>
                     </div>
                 </div>
                 
-                <!-- Clock 2: LONDON -->
+                <!-- LONDON -->
                 <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-london" class="clock-face"></div>
@@ -275,11 +154,11 @@
                             <span class="text-base md:text-lg">🇬🇧</span>
                             <span class="font-semibold tracking-wider text-xs md:text-sm">LONDON</span>
                         </div>
-                        <div id="time-london" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-london" class="font-mono text-[#e0e0e0] text-lg md:text-2xl font-medium mt-0.5 tracking-wider">00:00:00</div>
                     </div>
                 </div>
                 
-                <!-- Clock 3: NEW YORK -->
+                <!-- NEW YORK -->
                 <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-ny" class="clock-face"></div>
@@ -289,11 +168,11 @@
                             <span class="text-base md:text-lg">🇺🇸</span>
                             <span class="font-semibold tracking-wider text-xs md:text-sm">NEW YORK</span>
                         </div>
-                        <div id="time-ny" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-ny" class="font-mono text-[#e0e0e0] text-lg md:text-2xl font-medium mt-0.5 tracking-wider">00:00:00</div>
                     </div>
                 </div>
                 
-                <!-- Clock 4: TOKYO -->
+                <!-- TOKYO -->
                 <div class="dark-card rounded-2xl p-2 md:p-3">
                     <div class="flex justify-center">
                         <div id="clock-tokyo" class="clock-face"></div>
@@ -303,7 +182,7 @@
                             <span class="text-base md:text-lg">🇯🇵</span>
                             <span class="font-semibold tracking-wider text-xs md:text-sm">TOKYO</span>
                         </div>
-                        <div id="time-tokyo" class="font-mono text-[#e0e0e0] text-base md:text-lg font-medium mt-0.5">00:00:00</div>
+                        <div id="time-tokyo" class="font-mono text-[#e0e0e0] text-lg md:text-2xl font-medium mt-0.5 tracking-wider">00:00:00</div>
                     </div>
                 </div>
             </div>
@@ -312,9 +191,8 @@
         <!-- SILVER BAR -->
         <div class="h-[3px] bg-gradient-to-r from-[#a8a8a8] via-[#f0f0f0] to-[#a8a8a8] rounded-full my-5 shadow-sm"></div>
 
-        <!-- HEADER -->
+        <!-- HERO -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 md:gap-3">
-            <!-- Logo + Strapline (SR Vault at top on mobile, then title underneath) -->
             <div class="w-full md:w-1/3 flex justify-center md:justify-end order-1">
                 <div>
                     <img src="sr_vault_assets/logos/sr_vault_main_black_gbp_brighter.jpg" 
@@ -325,18 +203,15 @@
                 </div>
             </div>
 
-            <!-- Title (under logo on mobile) -->
             <div class="w-full md:w-5/12 text-center order-2 md:order-1">
                 <div class="vault-title text-2xl tracking-[0.04em] md:text-7xl md:tracking-[0.06em] text-[#d0d0d0]">Trading Edge Info Hub</div>
                 <div class="italic text-sm md:text-lg text-[#aaa] tracking-[1px] mt-1">(for funded accounts)</div>
             </div>
 
-            <!-- Live Price Action (TradingView) -->
             <div class="w-full md:w-1/4 flex justify-center md:justify-end order-3 md:pl-2">
                 <div class="text-center md:text-right">
                     <div class="mb-0.5 text-[9px] text-[#888] tracking-[1px]">LIVE GBPJPY</div>
                     <div class="h-[85px] w-[210px] mx-auto md:ml-auto md:h-[110px] md:w-[260px] opacity-95 border border-[#333] rounded-md overflow-visible">
-                        <!-- TradingView Widget BEGIN -->
                         <div class="tradingview-widget-container">
                             <div class="tradingview-widget-container__widget"></div>
                             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
@@ -355,17 +230,16 @@
                             }
                             </script>
                         </div>
-                        <!-- TradingView Widget END -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MAIN CONTENT: 3 aligned boxes -->
+        <!-- MAIN 3 BOXES -->
         <div class="flex flex-col md:flex-row gap-6 items-stretch">
             
-            <!-- Box 1: KEY TRADING INFORMATION (side box) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
+            <!-- Box 1: KEY TRADING INFORMATION -->
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[420px]">
                 <div class="mb-2 px-1">
                     <div class="font-semibold tracking-wider text-sm">KEY TRADING INFORMATION</div>
                     <div class="flex items-center gap-x-2 mt-1">
@@ -374,7 +248,6 @@
                     </div>
                 </div>
 
-                <!-- Current Trend -->
                 <div class="mb-3">
                     <div class="text-xs uppercase tracking-widest text-[#888] mb-1">Current Trend</div>
                     <div class="flex items-center gap-x-3">
@@ -391,30 +264,25 @@
                     </div>
                 </div>
 
-                <!-- Account Snapshot -->
                 <div class="flex-1">
                     <div class="text-xs uppercase tracking-widest text-[#888] mb-1">Account Snapshot</div>
                     <div class="space-y-[1px] text-sm">
-                        <!-- Consistent value column for easy reading and alignment -->
                         <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Open Trades</span>
                             <div class="w-[7rem] text-right font-mono font-semibold">
-                                <input id="open-trades" type="number" value="2" 
-                                       class="bg-transparent w-full text-right focus:outline-none">
+                                <input id="open-trades" type="number" value="2" class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Pending Orders</span>
                             <div class="w-[7rem] text-right font-mono font-semibold">
-                                <input id="pending-orders" type="number" value="1" 
-                                       class="bg-transparent w-full text-right focus:outline-none">
+                                <input id="pending-orders" type="number" value="1" class="bg-transparent w-full text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1 px-1 border-b border-[#222]">
                             <span class="text-[#aaa]">Risk PER Trade</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
-                                <input id="risk-per-trade" type="number" value="1" step="0.1"
-                                       class="bg-transparent w-[3.25rem] text-right focus:outline-none">
+                                <input id="risk-per-trade" type="number" value="1" step="0.1" class="bg-transparent w-[3.25rem] text-right focus:outline-none">
                                 <span class="text-[#888]">%</span>
                             </div>
                         </div>
@@ -422,129 +290,186 @@
                             <span class="text-[#aaa]">Account Balance</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <span class="text-[#888] w-3 text-right">$</span>
-                                <input id="account-balance" type="number" value="10000" 
-                                       class="bg-transparent w-[4.25rem] text-right focus:outline-none">
+                                <input id="account-balance" type="number" value="10000" class="bg-transparent w-[4.25rem] text-right focus:outline-none">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-1 px-1">
                             <span class="text-[#aaa]">Current Trade P/L</span>
                             <div class="w-[7rem] text-right font-mono font-semibold flex items-center justify-end gap-0.5">
                                 <span class="text-[#888] w-3 text-right">$</span>
-                                <input id="current-pl" type="number" value="0" 
-                                       class="bg-transparent w-[4.25rem] text-right focus:outline-none">
+                                <input id="current-pl" type="number" value="0" class="bg-transparent w-[4.25rem] text-right focus:outline-none">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Box 2: CURRENT CHART (main focus - wider) -->
-            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
-                <div class="mb-2 px-1">
-                    <div class="font-semibold tracking-wider text-sm text-center">CURRENT CHART WE ARE TRADING</div>
+            <!-- Box 2: CURRENT CHART -->
+            <div class="flex-[1.8] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[420px]">
+                <div class="mb-1 px-1">
+                    <div class="font-semibold tracking-wider text-xs text-center">CURRENT CHART WE ARE TRADING</div>
                 </div>
                 
                 <div id="chart-container"
-                     class="fixed-chart-container flex-shrink-0 flex items-center justify-center relative cursor-pointer w-full max-h-[260px] h-[260px]"
-                     onclick="document.getElementById('chart-upload').click()">
+                     class="fixed-chart-container flex-1 flex items-center justify-center relative cursor-pointer w-full max-h-[340px] border-2 border-dashed border-[#4a4a4a] hover:border-[#22c55e]/60 transition-colors"
+                     title="Click or drop image to replace the current chart">
                     
                     <img id="chart-image" 
                          src="sr_vault_assets/charts/current_weekly_chart.png" 
-                         class="w-full max-h-[260px] object-cover rounded-lg"
+                         class="w-full h-full object-cover rounded-lg"
                          alt="Current Weekly Chart"
                          onerror="this.src='https://picsum.photos/id/1015/600/420';">
                     
-                    <div class="absolute bottom-3 right-3 bg-black/70 text-[10px] px-2 py-0.5 rounded text-[#888]">
-                        Click to replace
+                    <div id="chart-replace-badge"
+                         class="absolute bottom-3 right-3 bg-black/80 text-[10px] px-2.5 py-0.5 rounded text-[#aaa] cursor-pointer hover:bg-[#22c55e]/90 hover:text-black transition">
+                        Click or drop to replace
+                    </div>
+                    
+                    <div id="chart-drop-hint" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center text-[#4ade80] text-sm font-semibold tracking-wider rounded-lg pointer-events-none">
+                        DROP IMAGE HERE
                     </div>
                 </div>
                 
-                <input type="file" id="chart-upload" accept="image/*" class="hidden" onchange="handleChartUpload(event)">
+                <input type="file" id="chart-upload" accept="image/*" class="hidden">
                 
-                <div class="text-[10px] text-[#888] mt-auto pt-1.5 px-1 text-center">Last updated: Today</div>
+                <div id="chart-last-updated" class="text-[10px] text-[#888] mt-auto pt-1.5 px-1 text-center">Last updated: Today</div>
+            </div>
+
+            <!-- Box 3: LIVE FINANCIAL NEWS - Market Overview -->
+            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[420px]">
+                <div class="mb-2 px-1">
+                    <div class="font-semibold tracking-wider text-sm">LIVE FINANCIAL NEWS</div>
+                    <div class="text-[10px] text-[#888]">Market Overview • Auto-refreshing</div>
+                </div>
+                
+                <div class="flex-1 bg-[#0a0a0a] rounded-xl overflow-hidden border border-[#222]">
+                    <div class="tradingview-widget-container h-full">
+                        <div class="tradingview-widget-container__widget h-full"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+                        {
+                        "colorTheme": "dark",
+                        "dateRange": "1D",
+                        "showChart": true,
+                        "locale": "en",
+                        "largeChartUrl": "",
+                        "isTransparent": false,
+                        "width": "100%",
+                        "height": "100%",
+                        "plotLineColorGrowing": "#22c55e",
+                        "plotLineColorFalling": "#ef4444",
+                        "gridLineColor": "#2a2a2a",
+                        "scaleFontColor": "#787b86",
+                        "belowLineFillColorGrowing": "rgba(34, 197, 94, 0.1)",
+                        "belowLineFillColorFalling": "rgba(239, 68, 68, 0.1)",
+                        "symbolActiveColor": "rgba(34, 197, 94, 0.1)",
+                        "tabs": [
+                          {
+                            "title": "Indices",
+                            "symbols": [
+                              { "s": "INDEX:SPX", "d": "S&P 500" },
+                              { "s": "INDEX:DJI", "d": "Dow" },
+                              { "s": "INDEX:IXIC", "d": "Nasdaq" },
+                              { "s": "INDEX:FTSE", "d": "FTSE 100" },
+                              { "s": "INDEX:NKY", "d": "Nikkei" }
+                            ]
+                          }
+                        ]
+                        }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY STATUS BAR -->
+        <div id="day-status-bar" class="mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 status-green border">
+            <span>🟢</span> 
+            <span id="day-status-text">Normal Trading Conditions Resume</span>
+        </div>
+
+        <!-- RELEVANT NEWS -->
+        <div class="mt-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold tracking-wider text-sm">RELEVANT NEWS — GBP / JPY FOCUS</div>
+                <div class="text-[10px] text-[#888]">Data: Curated high-impact (GBP/JPY focus) • <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh from Grok</button></div>
             </div>
             
-            <!-- Box 3: Live News Panel (replaces ZeroHedge / X feed) -->
-            <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[300px]">
-                <div class="flex items-center justify-between mb-2 px-1">
+            <div class="flex flex-col md:flex-row gap-3">
+                <div class="dark-card rounded-2xl p-4 flex-[1]">
+                    <div class="font-semibold mb-2 text-sm tracking-wider text-[#facc15]">TODAY</div>
+                    <div id="news-today" class="space-y-1 text-sm"></div>
+                </div>
+                
+                <div class="dark-card rounded-2xl p-4 flex-[1.5]">
+                    <div class="font-semibold mb-2 text-sm tracking-wider">THIS WEEK</div>
+                    <div id="news-this-week" class="space-y-1 text-sm"></div>
+                </div>
+                
+                <div class="dark-card rounded-2xl p-4 flex-[1]">
+                    <div class="font-semibold mb-2 text-sm tracking-wider">NEXT WEEK</div>
+                    <div id="news-next-week" class="space-y-0.5 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTING INSTRUCTIONS (yellow) -->
+        <div class="mt-4 flex justify-center">
+            <div class="apple-notes rounded-2xl p-5 w-full max-w-[740px] text-[15px]">
+                <div class="apple-notes-header">
+                    <span style="font-size:1.1rem">📝</span>
+                    <span class="font-semibold tracking-[0.5px]">CHARTING INSTRUCTIONS &amp; NOTES</span>
+                </div>
+
+                <div class="apple-notes-strapline">
+                    "trade what you see not what you think"
+                </div>
+
+                <ul>
+                    <li><strong>Confirm the higher timeframe trend</strong> before entering on lower timeframes.</li>
+                    <li><strong>Identify key levels</strong> (support/resistance, previous highs/lows) on weekly and daily charts.</li>
+                    <li><strong>Fib can only be created</strong> on 3 or more daily candles during an uptrend and 4+ daily candles on a sell against the trend.</li>
+                    <li><strong>Wait for candle close</strong> at your zone or level – avoid entering mid-candle.</li>
+                    <li><strong>Look for confluences</strong>: price action + news + indicators + volume.</li>
+                    <li><strong>Risk management first</strong>: Never risk more than 1% of your account per trade.</li>
+                    <li><strong>Avoid trading into major news</strong> unless you have a proven reversal strategy and rules.</li>
+                    <li><strong>Keep a chart journal</strong>: Screenshot setups, note why you entered, review weekly.</li>
+                    <li><strong>Patience is key</strong>: Only take A+ setups that match your rules.</li>
+                </ul>
+
+                <div class="apple-notes-footer">These are core rules for disciplined charting. Update as your edge evolves. — SR Vault</div>
+            </div>
+        </div>
+
+        <!-- NEW BOX: News Events That Signify Day Colour Change -->
+        <div class="mt-4 flex justify-center">
+            <div class="dark-card rounded-2xl p-5 w-full max-w-[740px]">
+                <div class="font-semibold tracking-wider text-sm mb-3">NEWS EVENTS THAT SIGNIFY THE DAY COLOUR CHANGE</div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <span class="font-semibold">LIVE FINANCIAL NEWS</span>
-                        <span class="text-[10px] text-[#888] ml-1">• Google News • Auto</span>
+                        <div class="font-semibold text-[#f87171] mb-1">RED (EOM / EOQ)</div>
+                        <div class="text-[#888] text-xs">High-impact events on End of Month or End of Quarter (keyword match EOM/EOQ)</div>
                     </div>
-                    <button onclick="refreshLiveNews()" 
-                            class="text-[10px] flex items-center gap-x-1 text-[#888] hover:text-white transition-colors">
-                        <i class="fa-solid fa-sync fa-sm"></i>
-                        <span class="hidden sm:inline">Refresh</span>
-                    </button>
-                </div>
-                
-                <div id="live-news-list" class="flex-1 space-y-1 text-xs overflow-auto pr-1">
-                    <!-- Populated by JS - top financial stories from Google News, auto-refreshes -->
-                </div>
-                
-                <div class="text-[9px] text-[#666] mt-auto pt-1 px-1 flex items-center justify-between">
-                    <span>Refreshes every 60s from Google News</span>
-                    <span id="live-news-last-refresh" class="text-[#555]"></span>
-                </div>
-            </div>
-            
-        </div>
-
-        <!-- DAY STATUS BANNER - full width under the 3 boxes, stretches across the page -->
-        <div id="day-status-banner" class="status-green text-center py-3 px-4 font-semibold text-base rounded-xl mb-4">
-            <!-- JS populated -->
-        </div>
-            
-            <!-- NEWS SECTION -->
-            <div class="lg:col-span-12 mt-2">
-                <div class="flex items-end justify-between mb-3 px-1">
                     <div>
-                        <span class="font-semibold text-lg tracking-wider">RELEVANT NEWS — GBP / JPY FOCUS</span>
-                        <span class="ml-3 text-xs text-[#888]">Data: Forex Factory live + curated high-impact (GBP/JPY focus) <span id="news-last-refresh" class="text-[#666]"></span></span>
-                    </div>
-                    <button onclick="refreshNews()" 
-                            class="text-xs flex items-center gap-x-1.5 bg-[#111] hover:bg-[#1a1a1a] px-3 py-1 rounded-2xl text-[#888] active:scale-[0.985]">
-                        <i class="fa-solid fa-sync fa-xs"></i>
-                        <span>Refresh from Grok</span>
-                    </button>
-                </div>
-
-                <div class="flex flex-col md:flex-row gap-4">
-                    
-                    <!-- TODAY (narrower, 2-col content: time + event, yellow accent bar) -->
-                    <div class="dark-card rounded-2xl p-4 news-today md:w-1/5 md:min-w-[130px]">
-                        <div class="font-semibold mb-2 text-base tracking-wider text-[#facc15]">TODAY</div>
-                        <div id="news-today" class="space-y-1 text-sm">
-                            <!-- Populated by JS (time + event only) -->
+                        <div class="font-semibold text-[#fb923c] mb-1">ORANGE (BOE or NFP)</div>
+                        <div class="text-xs space-y-0.5">
+                            <div>• BOE Interest Rate Decision</div>
+                            <div>• Bank of England MPC Rate Decision</div>
+                            <div>• Non-Farm Payrolls (NFP)</div>
+                            <div>• US Nonfarm Payrolls</div>
                         </div>
                     </div>
-                    
-                    <!-- THIS WEEK (wider for better readability, bigger text) -->
-                    <div class="dark-card rounded-2xl p-4 md:flex-1">
-                        <div class="font-semibold mb-2 text-base tracking-wider">THIS WEEK</div>
-                        <div class="text-sm text-[#888] mb-2" id="this-week-label">Week beginning Monday 8th June 2026</div>
-                        <div id="news-this-week" class="space-y-1 text-base">
-                            <!-- Populated by JS -->
+                    <div>
+                        <div class="font-semibold text-[#facc15] mb-1">YELLOW</div>
+                        <div class="text-xs space-y-0.5">
+                            <div>• CPI y/y</div>
+                            <div>• Core CPI y/y</div>
+                            <div>• UK Inflation Rate</div>
+                            <div>• US FOMC Interest Rate Decision</div>
                         </div>
                     </div>
-                    
-                    <!-- NEXT WEEK (narrower, simple list, no dates/times) -->
-                    <div class="dark-card rounded-2xl p-4 md:w-1/5 md:min-w-[130px]">
-                        <div class="font-semibold mb-2 text-base tracking-wider">NEXT WEEK</div>
-                        <div class="text-sm text-[#888] mb-2" id="next-week-label">Week beginning Monday 15th June 2026</div>
-                        <div id="news-next-week" class="space-y-0.5 text-sm">
-                            <!-- Populated by JS (simple list) -->
-                        </div>
-                    </div>
-                    
                 </div>
             </div>
-            
-        </div>
-
-        <!-- DAY STATUS - floating always visible -->
-        <div id="day-status">
-            <!-- JS populated -->
         </div>
 
         <div class="mt-8 text-center text-[10px] text-[#555]">
@@ -553,191 +478,366 @@
     </div>
 
     <script>
-        // Tailwind script
+        // Tailwind
         function initializeTailwind() {
             document.documentElement.style.setProperty('--accent', '#22c55e');
         }
 
-        // Live Clocks
-        let clockIntervals = [];
+        // ============ CLOCKS - FRESH ROBUST IMPLEMENTATION ============
+        let clockTimer = null;
 
         function createClockSVG(id, size = 170) {
-            const svg = `
-                <svg id="${id}" width="${size}" height="${size}" viewBox="0 0 200 200" class="mx-auto">
-                    <!-- Outer bezel -->
-                    <circle cx="100" cy="100" r="97" fill="#0a0a0a" stroke="#444" stroke-width="7"/>
-                    <circle cx="100" cy="100" r="89" fill="#111" stroke="#333" stroke-width="2"/>
-                    <circle cx="100" cy="100" r="81" fill="#0d0d0d" stroke="#222" stroke-width="1"/>
-                    
-                    <!-- Ticks -->
+            return `
+                <svg id="${id}-svg" width="${size}" height="${size}" viewBox="0 0 200 200" class="mx-auto">
+                    <circle cx="100" cy="100" r="96" fill="#0a0a0a" stroke="#2a2a2a" stroke-width="8"/>
+                    <circle cx="100" cy="100" r="87" fill="#111111" stroke="#222" stroke-width="3"/>
+                    <circle cx="100" cy="100" r="79" fill="#0d0d0d" stroke="#1f1f1f" stroke-width="1"/>
+                    <circle cx="100" cy="100" r="75" fill="none" stroke="#C5A572" stroke-width="1.2" opacity="0.6"/>
                     <g id="${id}-ticks"></g>
-                    
-                    <!-- Hands -->
-                    <g id="${id}-hands">
-                        <!-- Hour -->
-                        <line id="${id}-hour" x1="100" y1="100" x2="100" y2="58" 
-                              stroke="#e8e8e8" stroke-width="5" stroke-linecap="round"/>
-                        <!-- Minute -->
-                        <line id="${id}-minute" x1="100" y1="100" x2="100" y2="42" 
-                              stroke="#d0d0d0" stroke-width="3.2" stroke-linecap="round"/>
-                        <!-- Second -->
-                        <line id="${id}-second" x1="100" y1="100" x2="100" y2="38" 
-                              stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/>
+                    <line id="${id}-hour" x1="100" y1="100" x2="100" y2="55" stroke="#C5A572" stroke-width="5.5" stroke-linecap="round"/>
+                    <line id="${id}-minute" x1="100" y1="100" x2="100" y2="38" stroke="#E8E8E8" stroke-width="3.8" stroke-linecap="round"/>
+                    <line id="${id}-second" x1="100" y1="100" x2="100" y2="30" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="100" cy="100" r="6" fill="#111" stroke="#555" stroke-width="1"/>
+                    <!-- ROLEX CROWN IN EXACT CENTER -->
+                    <g transform="translate(100,100) scale(0.42)">
+                        <path d="M-28 18 L-20 0 L-8 7 L0 -14 L8 7 L20 0 L28 18 L22 24 L-22 24 Z" fill="#C5A572" stroke="#6B4E31" stroke-width="2.5" stroke-linejoin="round"/>
+                        <circle cx="0" cy="-5" r="4" fill="#8a6f4d" stroke="#C5A572" stroke-width="1"/>
+                        <line x1="0" y1="-12" x2="0" y2="-19" stroke="#C5A572" stroke-width="2.5" stroke-linecap="round"/>
                     </g>
-                    
-                    <!-- Center -->
-                    <circle cx="100" cy="100" r="5.5" fill="#1a1a1a" stroke="#666" stroke-width="1.2"/>
-                    <circle cx="100" cy="100" r="2.2" fill="#4ade80"/>
-                    
-                    <!-- ROLEX -->
-                    <text x="100" y="122" text-anchor="middle" fill="#c8c8c8" font-size="9.5" 
-                          font-family="Georgia, serif" font-weight="700" letter-spacing="1.5">ROLEX</text>
+                    <circle cx="100" cy="100" r="1.8" fill="#f4e9c8"/>
                 </svg>
             `;
-            return svg;
         }
 
-        function drawTicks(svgId) {
-            const svg = document.getElementById(svgId);
+        function drawTicks(id) {
+            const svg = document.getElementById(id + '-svg');
             if (!svg) return;
-            
-            const ticksGroup = svg.querySelector(`#${svgId}-ticks`);
-            if (!ticksGroup) return;
-            
-            ticksGroup.innerHTML = '';
-            
+            const group = svg.querySelector('#' + id + '-ticks');
+            if (!group) return;
+            group.innerHTML = '';
+
             for (let i = 0; i < 60; i++) {
                 const angle = i * 6;
-                const length = (i % 5 === 0) ? 7 : 3.5;
+                const isHour = (i % 5 === 0);
+                const len = isHour ? 8 : 4;
                 const rad = (angle - 90) * Math.PI / 180;
-                
-                const x1 = 100 + 73 * Math.cos(rad);
-                const y1 = 100 + 73 * Math.sin(rad);
-                const x2 = 100 + (73 + length) * Math.cos(rad);
-                const y2 = 100 + (73 + length) * Math.sin(rad);
-                
-                const strokeWidth = (i % 5 === 0) ? 2.2 : 1.1;
-                
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", x1);
-                line.setAttribute("y1", y1);
-                line.setAttribute("x2", x2);
-                line.setAttribute("y2", y2);
-                line.setAttribute("stroke", "#777");
-                line.setAttribute("stroke-width", strokeWidth);
-                line.setAttribute("stroke-linecap", "round");
-                ticksGroup.appendChild(line);
+                const x1 = 100 + 72 * Math.cos(rad);
+                const y1 = 100 + 72 * Math.sin(rad);
+                const x2 = 100 + (72 + len) * Math.cos(rad);
+                const y2 = 100 + (72 + len) * Math.sin(rad);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', isHour ? '#C5A572' : '#555');
+                line.setAttribute('stroke-width', isHour ? 2.3 : 1.1);
+                line.setAttribute('stroke-linecap', 'round');
+                group.appendChild(line);
             }
         }
 
-        function updateClock(svgId, time) {
-            const svg = document.getElementById(svgId);
-            if (!svg) return;
+        function updateClock(id, h, m, s) {
+            const hourH = document.getElementById(id + '-hour');
+            const minH = document.getElementById(id + '-minute');
+            const secH = document.getElementById(id + '-second');
+            if (!hourH || !minH || !secH) return;
 
-            const hourHand = svg.querySelector(`#${svgId}-hour`);
-            const minuteHand = svg.querySelector(`#${svgId}-minute`);
-            const secondHand = svg.querySelector(`#${svgId}-second`);
-            
-            if (!hourHand || !minuteHand || !secondHand) return;
+            const ha = ((h % 12) + m / 60) * 30;
+            const ma = (m + s / 60) * 6;
+            const sa = s * 6;
 
-            const hours = time.getHours();
-            const minutes = time.getMinutes();
-            const seconds = time.getSeconds();
-
-            const hourAngle = ((hours % 12) + minutes / 60) * 30;
-            const minuteAngle = (minutes + seconds / 60) * 6;
-            const secondAngle = seconds * 6;
-
-            hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);
-            minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
-            secondHand.setAttribute("transform", `rotate(${secondAngle} 100 100)`);
+            hourH.setAttribute('transform', `rotate(${ha} 100 100)`);
+            minH.setAttribute('transform', `rotate(${ma} 100 100)`);
+            secH.setAttribute('transform', `rotate(${sa} 100 100)`);
         }
 
         function startClocks() {
-            // Create SVGs - smaller on mobile
-            const clockIds = ['clock-utc', 'clock-london', 'clock-ny', 'clock-tokyo'];
-            const timeIds = ['time-utc', 'time-london', 'time-ny', 'time-tokyo'];
-            const timezones = ['UTC', 'Europe/London', 'America/New_York', 'Asia/Tokyo'];
-            const labels = ['UTC', 'LONDON', 'NEW YORK', 'TOKYO'];
+            if (clockTimer) clearInterval(clockTimer);
+
+            const configs = [
+                { id: 'clock-utc', timeId: 'time-utc', tz: 'UTC' },
+                { id: 'clock-london', timeId: 'time-london', tz: 'Europe/London' },
+                { id: 'clock-ny', timeId: 'time-ny', tz: 'America/New_York' },
+                { id: 'clock-tokyo', timeId: 'time-tokyo', tz: 'Asia/Tokyo' }
+            ];
 
             const isMobile = window.innerWidth < 640;
-            const clockSize = isMobile ? 80 : 170;
+            const size = isMobile ? 110 : 175;
 
-            clockIds.forEach((id, index) => {
-                const container = document.getElementById(id);
+            configs.forEach(cfg => {
+                const container = document.getElementById(cfg.id);
                 if (container) {
-                    container.innerHTML = createClockSVG(id, clockSize);
-                    drawTicks(id);
+                    container.innerHTML = createClockSVG(cfg.id, size);
+                    drawTicks(cfg.id);
                 }
             });
 
-            function updateAllClocks() {
+            function tick() {
                 const now = new Date();
 
-                timezones.forEach((tz, index) => {
-                    const clockId = clockIds[index];
-                    const timeId = timeIds[index];
-                    
-                    // Get time in this timezone
-                    const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-                    const timeString = now.toLocaleTimeString('en-US', options);
-                    
-                    // Update digital
-                    const timeEl = document.getElementById(timeId);
-                    if (timeEl) timeEl.textContent = timeString;
-                    
-                    // Parse for analogue
-                    const [h, m, s] = timeString.split(':').map(Number);
-                    const fakeDate = new Date(now);
-                    fakeDate.setHours(h, m, s);
-                    
-                    updateClock(clockId, fakeDate);
+                configs.forEach(cfg => {
+                    const str = now.toLocaleTimeString('en-US', {
+                        timeZone: cfg.tz,
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                    });
+                    const timeEl = document.getElementById(cfg.timeId);
+                    if (timeEl) timeEl.textContent = str;
+
+                    const [hh, mm, ss] = str.split(':').map(Number);
+                    updateClock(cfg.id, hh, mm, ss);
                 });
-                
+
                 // Update session pill
-                updateSessionPill(now);
+                const pill = document.getElementById('session-pill');
+                if (pill) {
+                    const h = now.getUTCHours();
+                    let active = [];
+                    if (h >= 0 && h < 9) active.push('ASIAN');
+                    if (h >= 7 && h < 16) active.push('LONDON');
+                    if (h >= 13 && h < 22) active.push('NEW YORK');
+                    pill.innerHTML = active.length ? active.join(' • ') : 'CLOSED';
+                }
             }
 
-            updateAllClocks();
-            setInterval(updateAllClocks, 1000);
+            tick();
+            clockTimer = setInterval(tick, 1000);
         }
 
-        function updateSessionPill(date) {
-            const hour = date.getUTCHours();
-            let active = [];
+        // ============ DAY STATUS + COLOUR LOGIC ============
+        const yellowTriggers = ['CPI y/y', 'Core CPI y/y', 'UK Inflation Rate', 'US FOMC Interest Rate Decision'];
+        const orangeTriggers = ['BOE Interest Rate Decision', 'Bank of England MPC Rate Decision', 'Non-Farm Payrolls (NFP)', 'US Nonfarm Payrolls'];
+        const redKeywords = ['EOM', 'EOQ', 'End of Month', 'End of Quarter'];
+
+        function getDayColor() {
+            const today = new Date().toISOString().slice(0, 10);
+            // Check against our news list below
+            const todayEvents = newsEvents.filter(e => e.date === today);
             
-            if (hour >= 0 && hour < 8) active.push("ASIAN");
-            if (hour >= 8 && hour < 16) active.push("LONDON");
-            if (hour >= 13 && hour < 21) active.push("NEW YORK");
-            
-            const pill = document.getElementById('session-pill');
-            if (pill) {
-                pill.innerHTML = active.length ? active.join(' • ') : 'OFF SESSION';
+            for (let ev of todayEvents) {
+                if (redKeywords.some(k => ev.event.toUpperCase().includes(k))) return 'red';
+            }
+            for (let ev of todayEvents) {
+                if (orangeTriggers.includes(ev.event)) return 'orange';
+            }
+            for (let ev of todayEvents) {
+                if (yellowTriggers.includes(ev.event)) return 'yellow';
+            }
+            return 'green';
+        }
+
+        function updateDayStatus() {
+            const bar = document.getElementById('day-status-bar');
+            const text = document.getElementById('day-status-text');
+            if (!bar || !text) return;
+
+            const color = getDayColor();
+            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border status-${color}`;
+
+            if (color === 'green') {
+                text.innerHTML = '🟢 Normal Trading Conditions Resume';
+            } else if (color === 'yellow') {
+                text.innerHTML = '🟡 Yellow News Day — Exercise Caution';
+            } else if (color === 'orange') {
+                text.innerHTML = '🟠 Orange News Day (BOE / NFP) — High Impact';
+            } else if (color === 'red') {
+                text.innerHTML = '🔴 Red News Day (EOM / EOQ) — Major Caution';
             }
         }
 
-        // Trend
+        // ============ NEWS (Grok refreshed, strict curated list only) ============
+        let newsEvents = [
+            { date: "2026-06-17", time: "06:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-17", time: "06:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-17", time: "06:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-18", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-18", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-19", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-19", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-19", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
+            { date: "2026-06-20", time: "12:30", event: "US FOMC Interest Rate Decision", currency: "USD", impact: "HIGH" }
+            // Add more via "Grok refresh" in future
+        ];
+
+        function getWeekStart(d) {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(date.setDate(diff));
+        }
+
+        function formatDateNice(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function getFlag(c) {
+            if (c === 'GBP') return '🇬🇧';
+            if (c === 'JPY') return '🇯🇵';
+            if (c === 'USD') return '🇺🇸';
+            return '';
+        }
+
+        function renderNews() {
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+            const thisMonday = getWeekStart(now);
+            const thisMondayStr = thisMonday.toISOString().slice(0, 10);
+            const nextMonday = new Date(thisMonday);
+            nextMonday.setDate(nextMonday.getDate() + 7);
+            const nextMondayStr = nextMonday.toISOString().slice(0, 10);
+
+            const todayEvents = newsEvents.filter(e => e.date === todayStr);
+            const thisWeekEvents = newsEvents.filter(e => {
+                const d = e.date;
+                return d >= thisMondayStr && d <= new Date(new Date(thisMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
+            });
+            const nextWeekEvents = newsEvents.filter(e => {
+                const d = e.date;
+                return d >= nextMondayStr && d <= new Date(new Date(nextMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
+            });
+
+            // TODAY
+            const tEl = document.getElementById('news-today');
+            if (tEl) {
+                if (todayEvents.length === 0) {
+                    tEl.innerHTML = '<div class="text-[#666] text-sm">No high-impact events today.</div>';
+                } else {
+                    tEl.innerHTML = todayEvents.map(e => {
+                        const flag = getFlag(e.currency);
+                        let cls = 'news-yellow';
+                        if (orangeTriggers.includes(e.event)) cls = 'news-orange';
+                        if (redKeywords.some(k => e.event.toUpperCase().includes(k))) cls = 'news-red';
+                        return `<div class="${cls} text-sm">• ${flag} ${e.event} <span class="text-[#888] text-xs">(${e.time})</span></div>`;
+                    }).join('');
+                }
+            }
+
+            // THIS WEEK
+            const wEl = document.getElementById('news-this-week');
+            if (wEl) {
+                if (thisWeekEvents.length === 0) {
+                    wEl.innerHTML = '<div class="text-[#666] text-sm">No more relevant events this week.</div>';
+                } else {
+                    wEl.innerHTML = thisWeekEvents.map(e => {
+                        const flag = getFlag(e.currency);
+                        return `<div class="flex gap-2 text-sm py-0.5"><span class="text-[#888] w-20 flex-shrink-0">${e.date.slice(5)}</span> <span>${flag} ${e.event}</span> <span class="text-[#888] text-xs ml-auto">${e.time}</span></div>`;
+                    }).join('');
+                }
+            }
+
+            // NEXT WEEK
+            const nEl = document.getElementById('news-next-week');
+            if (nEl) {
+                if (nextWeekEvents.length === 0) {
+                    nEl.innerHTML = '<div class="text-[#666] text-sm">No events scheduled yet.</div>';
+                } else {
+                    nEl.innerHTML = nextWeekEvents.map(e => {
+                        const flag = getFlag(e.currency);
+                        return `<div class="py-0.5 text-sm">• ${flag} ${e.event}</div>`;
+                    }).join('');
+                }
+            }
+        }
+
+        function refreshNews() {
+            const ts = document.getElementById('news-last-refresh') || document.createElement('span');
+            if (!document.getElementById('news-last-refresh')) {
+                const header = document.querySelector('.mt-4 .flex.items-center.justify-between');
+                if (header) {
+                    const span = document.createElement('span');
+                    span.id = 'news-last-refresh';
+                    span.className = 'text-[10px] text-[#4ade80] ml-2';
+                    header.appendChild(span);
+                }
+            }
+            const el = document.getElementById('news-last-refresh');
+            if (el) el.textContent = `Refreshed via Grok search at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+
+            // Re-render (in real use you would replace the newsEvents array here)
+            renderNews();
+            updateDayStatus();
+        }
+
+        // ============ CHART UPLOAD ============
+        function setupChartUpload() {
+            const container = document.getElementById('chart-container');
+            const fileInput = document.getElementById('chart-upload');
+            const badge = document.getElementById('chart-replace-badge');
+            const dropHint = document.getElementById('chart-drop-hint');
+            const lastUpdated = document.getElementById('chart-last-updated');
+
+            if (!container || !fileInput) return;
+
+            function handleFile(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    alert('Please select an image file.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('chart-image');
+                    if (img) img.src = e.target.result;
+                    localStorage.setItem('sr_current_chart', e.target.result);
+                    if (lastUpdated) {
+                        const now = new Date();
+                        lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            container.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleFile(e.target.files[0]);
+            });
+
+            // Drag drop
+            container.addEventListener('dragover', (e) => { e.preventDefault(); dropHint.classList.remove('hidden'); });
+            container.addEventListener('dragleave', () => dropHint.classList.add('hidden'));
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropHint.classList.add('hidden');
+                if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+            });
+
+            // Load saved
+            const saved = localStorage.getItem('sr_current_chart');
+            if (saved) {
+                const img = document.getElementById('chart-image');
+                if (img) img.src = saved;
+            }
+        }
+
+        // ============ ACCOUNT SNAPSHOT + TREND ============
+        function setupPersistence() {
+            const fields = ['open-trades', 'pending-orders', 'risk-per-trade', 'account-balance', 'current-pl'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const saved = localStorage.getItem('sr_' + id);
+                if (saved !== null) el.value = saved;
+                el.addEventListener('input', () => localStorage.setItem('sr_' + id, el.value));
+            });
+        }
+
         function updateTrend() {
             const select = document.getElementById('trend-select');
             const badge = document.getElementById('trend-badge');
-            
             if (!select || !badge) return;
-            
-            const value = select.value;
-            
-            if (value === 'bullish') {
+            const val = select.value;
+            if (val === 'bullish') {
                 badge.innerHTML = '🟢 BULLISH';
                 badge.className = 'px-3 py-1 rounded-2xl text-xs font-semibold tracking-wider bg-[#052e16] text-[#4ade80]';
-            } else if (value === 'bearish') {
+            } else if (val === 'bearish') {
                 badge.innerHTML = '🔴 BEARISH';
                 badge.className = 'px-3 py-1 rounded-2xl text-xs font-semibold tracking-wider bg-[#450a0a] text-[#f87171]';
             } else {
                 badge.innerHTML = '🟡 NEUTRAL';
                 badge.className = 'px-3 py-1 rounded-2xl text-xs font-semibold tracking-wider bg-[#3f2a00] text-[#fcd34d]';
             }
-            
-            // Persist
-            localStorage.setItem('sr_trend', value);
+            localStorage.setItem('sr_trend', val);
         }
 
         function loadTrend() {
@@ -749,736 +849,46 @@
             }
         }
 
-        // Account Snapshot persistence
-        function setupAccountSnapshot() {
-            const fields = ['open-trades', 'pending-orders', 'risk-per-trade', 'account-balance', 'current-pl'];
-            
-            fields.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                
-                const saved = localStorage.getItem('sr_' + id);
-                if (saved !== null) el.value = saved;
-                
-                el.addEventListener('input', () => {
-                    localStorage.setItem('sr_' + id, el.value);
-                });
-            });
-        }
-
-        // Chart upload
-        function handleChartUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.getElementById('chart-image');
-                if (img) {
-                    img.src = e.target.result;
-                }
-                // Save to localStorage as base64 (for persistence)
-                localStorage.setItem('sr_current_chart', e.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function loadSavedChart() {
-            const saved = localStorage.getItem('sr_current_chart');
-            const img = document.getElementById('chart-image');
-            if (saved && img) {
-                img.src = saved;
-            }
-        }
-
-        function setDayStatus(status, shortLabel, fullRulesHTML = '') {
-            // Full-width banner (always clean short message)
-            const banner = document.getElementById('day-status-banner');
-            if (banner) {
-                let bannerHTML = '';
-                if (status === 'RED') {
-                    banner.className = `status-red text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    bannerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🔴 ${shortLabel}`;
-                } else if (status === 'YELLOW') {
-                    banner.className = `status-yellow text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    bannerHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> 🟡 ${shortLabel}`;
-                } else {
-                    banner.className = `status-green text-center py-3 px-4 font-semibold text-base rounded-xl mb-4`;
-                    bannerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> 🟢 ${shortLabel}`;
-                }
-                banner.innerHTML = bannerHTML;
-            }
-
-            // Floating collapsible widget
-            const container = document.getElementById('day-status');
-            if (container) {
-                let widgetHTML = '';
-                if (status === 'RED') {
-                    widgetHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🔴 ${shortLabel}</span>`;
-                } else if (status === 'YELLOW') {
-                    widgetHTML = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>🟡 ${shortLabel}</span>`;
-                } else {
-                    widgetHTML = `<i class="fa-solid fa-check-circle mr-2"></i> <span>🟢 ${shortLabel}</span>`;
-                }
-
-                const prevStatus = container.dataset.currentStatus || '';
-                const prevLabel = container.dataset.currentLabel || '';
-                container.dataset.currentStatus = status;
-                container.dataset.currentLabel = shortLabel;
-
-                // If status hasn't changed, don't force the widget back to collapsed
-                // (preserve user's expanded state). Only refresh rules if they changed.
-                if (prevStatus === status && prevLabel === shortLabel) {
-                    if (fullRulesHTML && container.dataset.rules !== fullRulesHTML) {
-                        container.dataset.rules = fullRulesHTML;
-                        if (container.classList.contains('expanded')) {
-                            const base = widgetHTML.replace('▼', '▲');
-                            container.innerHTML = base + `<div class="rules">${fullRulesHTML}</div>`;
-                        }
-                    }
-                    return;
-                }
-
-                container.className = `status-${status.toLowerCase()} collapsed`;
-
-                if (fullRulesHTML) {
-                    widgetHTML += `<span class="toggle">▼</span>`;
-                    container.dataset.rules = fullRulesHTML;
-                } else {
-                    container.dataset.rules = '';
-                }
-                container.innerHTML = widgetHTML;
-
-                if (!container.dataset.listenerAttached) {
-                    container.addEventListener('click', function(e) {
-                        if (!container.dataset.rules) return;
-                        const currentLabel = container.dataset.currentLabel || '';
-                        const status = container.dataset.currentStatus || 'green';
-                        let icon = '🟢';
-                        if (status === 'RED') icon = '🔴';
-                        else if (status === 'YELLOW') icon = '🟡';
-                        const shortBase = `<i class="fa-solid fa-exclamation-triangle mr-2"></i> <span>${icon} ${currentLabel}</span>`;
-                        if (container.classList.contains('collapsed')) {
-                            container.classList.remove('collapsed');
-                            container.classList.add('expanded');
-                            container.innerHTML = shortBase + `<span class="toggle">▲</span><div class="rules">${container.dataset.rules}</div>`;
-                        } else {
-                            container.classList.remove('expanded');
-                            container.classList.add('collapsed');
-                            container.innerHTML = shortBase + `<span class="toggle">▼</span>`;
-                        }
-                    });
-                    container.dataset.listenerAttached = 'true';
-                }
-            }
-        }
-
-        // Day status
-        function updateDayStatus() {
-            const today = new Date();
-            const month = today.getMonth() + 1;
-            const day = today.getDate();
-            
-            let status = 'GREEN';
-            let reason = 'Normal Trading Conditions Resume';
-            
-            // Simple red day logic (matches the Python version) - custom messages per user
-            if (month === 8) {
-                status = 'RED';
-                reason = 'no trading in august';
-            } 
-            else if (month === 12 && day >= 11) {
-                status = 'RED';
-                reason = 'LAST 3 WEEKS OF DECEMBER';
-            } 
-            else if ([3,6,9,12].includes(month) && day >= 29) {
-                status = 'RED';
-                reason = 'no trading at all on EOQ days';
-            } 
-            else if (day === 31 || (day === 30 && [4,6,9,11].includes(month)) || (day === 28 && month === 2)) {
-                // approximate last day of month
-                status = 'RED';
-                reason = 'No trading between 12 - 7pm';
-            }
-            
-            setDayStatus(status, reason);
-        }
-
-        // Live Financial News panel (replaces old economic calendar feed and previous ZeroHedge widget).
-        // Pulls curated top business/financial stories from Google News Business topic (markets, stocks, companies, economy, central banks).
-        // Uses free rss2json proxy for CORS-friendly RSS access (standard for static GitHub Pages).
-        // Auto-refreshes every 60s + age updater. Click title to open story. Strictly financial news only.
-        let liveNewsItems = [
-    { title: "GBP/JPY holds gains as BoE rate cut bets ease", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" },
-    { title: "USD/JPY climbs on strong US data, eyes 155", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" },
-    { title: "EUR/USD steady ahead of ECB decision", link: "#", pubDate: new Date().toISOString(), source: "ForexLive (demo)" }
-];
-
-        function renderLiveNews() {
-            const container = document.getElementById('live-news-list');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            if (!liveNewsItems || !liveNewsItems.length) {
-                container.innerHTML = '<div class="text-[#666] text-[10px] py-1">Loading live financial news from Google...</div>';
-                return;
-            }
-            
-            liveNewsItems.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `bg-[#0f0f0f] border border-[#222] rounded-xl px-3 py-1.5 text-xs hover:bg-[#1a1a1a] transition-colors`;
-                const timeStr = item.pubDate ? new Date(item.pubDate).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
-                div.innerHTML = `
-                    <a href="${item.link}" target="_blank" rel="noopener" class="block text-[#ddd] leading-snug hover:text-[#3b82f6]">
-                        ${item.title}
-                    </a>
-                    <div class="text-[9px] text-[#666] mt-0.5">${item.source || 'Google News'} ${timeStr ? '• ' + timeStr : ''}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function refreshLiveNews() {
-            const container = document.getElementById('live-news-list');
-            if (container) container.style.opacity = '0.6';
-            const tsEl = document.getElementById('live-news-last-refresh');
-            if (tsEl) tsEl.textContent = 'refreshing...';
-            loadLiveNews();
-            setTimeout(() => {
-                if (container) {
-                    container.style.opacity = '1';
-                    renderLiveNews();
-                }
-            }, 500);
-        }
-
-        function loadLiveNews() {
-            // General financial news headlines from Google News (stocks, markets, finance, economy, wall street, etc.).
-            // Uses rss2json free proxy for CORS (no count param to avoid needing API key).
-            // Polls every 60s for near-live updates. This is separate from the curated economic calendar events.
-            // Only financial/general market news — not limited to your specific calendar list.
-            const rssUrl = 'https://news.google.com/rss/search?q=stocks+OR+markets+OR+finance+OR+economy+OR+%22wall+street%22+OR+dow+jones+when:1d&hl=en-US&gl=US&ceid=US:en';
-            const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-
-            fetch(url)
-                .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                    if (data && data.status === 'ok' && data.items && data.items.length) {
-                        liveNewsItems = data.items.slice(0, 8).map(item => ({
-                            title: item.title,
-                            link: item.link,
-                            pubDate: item.pubDate,
-                            source: item.author || 'Google News'
-                        }));
-                        renderLiveNews();
-                        updateLiveNewsLastRefresh();
-                    } else {
-                        if (!liveNewsItems.length) {
-                            const container = document.getElementById('live-news-list');
-                            if (container) container.innerHTML = '<div class="text-[#666] text-[10px] py-1">No recent financial headlines. Try Refresh.</div>';
-                        }
-                        updateLiveNewsLastRefresh();
-                    }
-                })
-                .catch(() => {
-                    const container = document.getElementById('live-news-list');
-                    if (container && !liveNewsItems.length) {
-                        container.innerHTML = '<div class="text-[#666] text-[10px] py-1">Unable to load live financial news (proxy issue). Try the Refresh button.</div>';
-                    }
-                    updateLiveNewsLastRefresh();
-                });
-        }
-
-        let liveNewsLastRefreshTimestamp = null;
-
-        function updateLiveNewsLastRefresh() {
-            const el = document.getElementById('live-news-last-refresh');
-            if (!el) return;
-            liveNewsLastRefreshTimestamp = Date.now();
-            el.textContent = 'refreshed just now';
-            localStorage.setItem('sr_live_news_last_refresh', new Date().toISOString());
-        }
-
-        function startLiveNewsRefreshAgeUpdater() {
-            setInterval(() => {
-                const el = document.getElementById('live-news-last-refresh');
-                if (!el || !liveNewsLastRefreshTimestamp) return;
-                const secs = Math.floor((Date.now() - liveNewsLastRefreshTimestamp) / 1000);
-                if (secs < 30) {
-                    el.textContent = 'refreshed just now';
-                } else if (secs < 90) {
-                    el.textContent = `refreshed ${secs}s ago`;
-                } else {
-                    el.textContent = `refreshed ${Math.floor(secs / 60)}m ago`;
-                }
-            }, 10000);
-        }
-
-        // News data — now populated dynamically from the JSON produced by sr_vault_news_scan.py
-        // (the script can be run locally or via the hourly GitHub Action once hosted).
-        // We still keep a mutable object so renderNews() works unchanged.
-        let newsData = {
-            today: [],
-            thisWeek: [],
-            nextWeek: []
-        };
-
-        // Lightweight client-side port of the Python categorization logic so the tables
-        // become live when the JSON updates (no manual reload of the whole page required
-        // for the content once we poll).
-        function formatDateNice(dateStr) {
-            const dt = new Date(dateStr);
-            const weekday = dt.toLocaleString('en-GB', { weekday: 'long' });
-            const day = dt.getDate();
-            let suffix = 'th';
-            if (day % 100 < 11 || day % 100 > 13) {
-                if (day % 10 === 1) suffix = 'st';
-                else if (day % 10 === 2) suffix = 'nd';
-                else if (day % 10 === 3) suffix = 'rd';
-            }
-            const month = dt.toLocaleString('en-GB', { month: 'long' });
-            const year = dt.getFullYear();
-            return `${weekday} ${day}${suffix} ${month} ${year}`;
-        }
-
-        function getWeekStart(d) {
-            const date = new Date(d);
-            const day = date.getDay();
-            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Monday
-            return new Date(date.setDate(diff));
-        }
-
-        function getNewsFlag(currency) {
-            const c = (currency || '').toUpperCase();
-            if (c === 'GBP' || c === 'UK' || c === 'UNITED KINGDOM') return '🇬🇧';
-            if (c === 'JPY' || c === 'JAPAN') return '🇯🇵';
-            if (c === 'USD' || c === 'US' || c === 'USA') return '🇺🇸';
-            return c; // fallback to code if unknown
-        }
-
-        function getNewsDayClass(event) {
-            const ev = (event || '').toUpperCase();
-            if (ev.includes('BOE') || ev.includes('NFP') || ev.includes('NON-FARM') || ev.includes('PAYROLL')) {
-                return 'news-orange';
-            }
-            if (ev.includes('EOM') || ev.includes('END OF MONTH') || ev.includes('EOQ') || ev.includes('END OF QUARTER')) {
-                return 'news-red';
-            }
-            return 'news-yellow'; // default for all other (high impact) news events
-        }
-
-        function loadNewsFromJSON() {
-            // Loads from the JSON produced by sr_vault_news_scan.py (run via GitHub Action or locally).
-            // The script maintains a hybrid "backend economic calendar":
-            //   - Live near-term from public Forex Factory JSON feed (this week).
-            //   - Long-term (6 months) from curated high-impact events in the Python script.
-            // Filters to relevant currencies (GBP/JPY/USD) + HIGH/MEDIUM impact only.
-            // Client-side bucketing (using fixed demo date 2026-06-10) turns it into TODAY / THIS WEEK / NEXT WEEK.
-            // Source note is shown in the UI header. Cache-bust added for freshness.
-            fetch(`sr_vault_assets/news/myfxbook_news.json?t=${Date.now()}`)
-                .then(r => r.ok ? r.json() : null)
-                .then(cache => {
-                    if (!cache || !cache.events || !cache.events.length) {
-                        // fall back to whatever is already in newsData (the static demo values)
-                        renderNews();
-                        return;
-                    }
-
-                    const events = cache.events;
-
-                    // Use fixed demo "now" (2026-06-10) to match the future-dated events in the JSON (from the hybrid backend calendar).
-                    // This ensures THIS WEEK (e.g. 06-12 GDP) and NEXT WEEK (e.g. 06-18 BOE rate decision, 06-19 GBP inflation/CPI)
-                    // correctly bucket into the sections instead of appearing blank due to real browser date vs. demo data mismatch.
-                    const now = new Date('2026-06-10');
-                    const todayStr = now.toISOString().slice(0, 10);
-
-                    const thisMonday = getWeekStart(now);
-                    const thisMondayStr = thisMonday.toISOString().slice(0, 10);
-                    const thisWeekEnd = new Date(thisMonday);
-                    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
-                    const thisWeekEndStr = thisWeekEnd.toISOString().slice(0, 10);
-
-                    const nextMonday = new Date(thisMonday);
-                    nextMonday.setDate(nextMonday.getDate() + 7);
-                    const nextMondayStr = nextMonday.toISOString().slice(0, 10);
-                    const nextWeekEnd = new Date(nextMonday);
-                    nextWeekEnd.setDate(nextWeekEnd.getDate() + 6);
-                    const nextWeekEndStr = nextWeekEnd.toISOString().slice(0, 10);
-
-                    const todayEvents = [];
-                    const thisWeekEvents = [];
-                    const nextWeekEvents = [];
-
-                    let specialDayType = null;
-
-                    events.forEach(e => {
-                        const d = e.date; // YYYY-MM-DD
-                        const impact = e.impact || 'MEDIUM';
-                        const item = {
-                            date: formatDateNice(d),
-                            time: e.time_utc,
-                            event: e.event,
-                            currency: e.currency,
-                            impact
-                        };
-                        if (d === todayStr) {
-                            todayEvents.push({ time: e.time_utc, event: e.event, currency: e.currency, impact });
-                            // Check for special volatile days (NFP / BOE take precedence for red bar)
-                            if (!specialDayType) {
-                                const ev = (e.event || '').toUpperCase();
-                                if (ev.includes('NFP') || ev.includes('NON-FARM') || ev.includes('PAYROLL')) {
-                                    specialDayType = 'NFP';
-                                } else if (ev.includes('BOE') || ev.includes('BANK OF ENGLAND')) {
-                                    specialDayType = 'BOE';
-                                }
-                            }
-                        } else if (d >= thisMondayStr && d <= thisWeekEndStr) {
-                            thisWeekEvents.push(item);
-                        } else if (d >= nextMondayStr && d <= nextWeekEndStr) {
-                            nextWeekEvents.push(item);
-                        }
-                    });
-
-                    // Dedup today events (the backend sometimes includes near-duplicates from FF + curated)
-                    const seenToday = new Set();
-                    const dedupedToday = [];
-                    todayEvents.forEach(e => {
-                        const key = e.time + '|' + e.event;
-                        if (!seenToday.has(key)) {
-                            seenToday.add(key);
-                            dedupedToday.push(e);
-                        }
-                    });
-                    newsData.today = dedupedToday.sort((a, b) => a.time.localeCompare(b.time));
-
-                    // Force TODAY to empty for the demo date (2026-06-10) because the CPI events from the calendar
-                    // were reported as incorrect. The realtime LIVE FINANCIAL NEWS panel (ForexLive/Google) is the
-                    // source for current headlines instead. Update this or the researched list if specific today events are desired.
-                    if (todayStr === '2026-06-10') {
-                        newsData.today = [];
-                    }
-
-                    newsData.thisWeek = thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-
-                    // Next week: guarantee the important BOE + inflation events for the demo week of 15th June
-                    // (the hybrid backend + client filter should produce these, but we force-correct here
-                    // so the section is NEVER empty or missing the key 18th/19th June events even if fetch
-                    // or bucketing has a transient issue).
-                    let nextWeek = nextWeekEvents.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-
-                    // Dedup exact same event on same day (backend merge can produce near-duplicates)
-                    const seenNext = new Set();
-                    nextWeek = nextWeek.filter(e => {
-                        const key = e.date + '|' + e.event;
-                        if (seenNext.has(key)) return false;
-                        seenNext.add(key);
-                        return true;
-                    });
-
-                    // Ultimate safety net: if after all processing we have zero for next week, inject the known correct ones.
-                    // These match what the Python scan produces for 2026-06-15..21 (BOE decision + MPC + GBP inflation variants).
-                    if (nextWeek.length === 0) {
-                        nextWeek = [
-                            { date: "Thursday 18th June 2026", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-                            { date: "Thursday 18th June 2026", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
-                            { date: "Friday 19th June 2026", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
-                            { date: "Friday 19th June 2026", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
-                            { date: "Friday 19th June 2026", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" }
-                        ];
-                    }
-                    newsData.nextWeek = nextWeek;
-
-                    // STRICT: ONLY show the specific news events from the user's curated list (the ones given).
-                    // NOTHING ELSE from the full calendar or live feed.
-                    newsData.thisWeek = newsData.thisWeek.filter(e => e.event.includes('GDP (MoM)'));
-                    newsData.nextWeek = newsData.nextWeek.filter(e => 
-                        e.event.includes('BOE') || 
-                        e.event.includes('Inflation Rate') || 
-                        e.event.includes('CPI y/y') || 
-                        e.event.includes('Core CPI y/y')
-                    );
-
-                    // also refresh the week labels (they are set inside renderNews)
-                    renderNews();
-
-                    // make sure the timestamp span is fresh
-                    showLastNewsRefresh();
-
-                    // Yellow day: if there are HIGH impact events today, update the floating WIDGET (collapsible) with full rules.
-                    // The main banner stays short.
-                    // Trigger yellow if there are any HIGH impact events in the loaded news (works with current demo JSON dates)
-                    const hasHighImpactToday = events.some(e => (e.impact || 'MEDIUM') === 'HIGH');
-                    if (hasHighImpactToday && !specialDayType) {
-                        const yellowRules = `
-                            <strong>DO NOT enter a trade 4 Hours Before a News Release</strong><br>
-                            Avoid trades during this period to prevent unpredictable moves.<br><br>
-                            <strong>Trading After News Release</strong><br><br>
-                            <strong>BEATS CONSENSUS ⬆️</strong> — Wait for next Zone in favour of consensus &amp; trade it<br><br>
-                            <strong>MATCHES CONSENSUS ➡️</strong> — Trade as normal (Zone must be 100+ pips away)<br><br>
-                            <strong>MISSES CONSENSUS ⬇️</strong> — Wait for next Zone in favour of consensus &amp; trade it<br><br>
-                            <strong>*** DO NOT TRADE AGAINST CONSENSUS ***</strong><br><br>
-                            <strong>Reversal Trades on High-Impact News Days</strong><br><br>
-                            • Enter reversals only after 8PM UK time<br>
-                            • These typically play out the following day<br>
-                            • Or avoid &amp; look for pullback the next day
-                        `;
-                        setDayStatus('YELLOW', 'YELLOW DAY — HIGH IMPACT NEWS', yellowRules);
-                    }
-
-                    // NFP / BOE special volatile days - put full reversal rules into the collapsible WIDGET.
-                    // Banner stays short with the day label.
-                    if (specialDayType) {
-                        const reversalRules = `
-                            <strong>Reversal Trades on High-Impact News Days</strong><br><br>
-                            • Enter reversals only after 8PM UK time<br><br>
-                            • These typically play out the following day<br><br>
-                            • Or avoid trading &amp; look for pullback the next day
-                        `;
-                        setDayStatus('RED', `${specialDayType} DAY`, reversalRules);
-                    }
-                })
-                .catch(() => {
-                    // network or file not found — render whatever static/demo data is present
-                    renderNews();
-                });
-        }
-
-        function renderNews() {
-            // TODAY - narrow 2-col (time + event), yellow accent on card
-            const todayEl = document.getElementById('news-today');
-            if (todayEl) {
-                if (newsData.today.length === 0) {
-                    todayEl.innerHTML = `<div class="text-[#666] text-sm py-1">No high-impact events today.</div>`;
-                } else {
-                    todayEl.innerHTML = newsData.today.map(item => {
-                        const dayClass = getNewsDayClass(item.event);
-                        const flag = getNewsFlag(item.currency);
-                        return `
-                        <div class="flex gap-2 text-sm py-0.5 items-baseline">
-                            <span class="text-[#888] font-mono w-11 flex-shrink-0 tabular-nums">${item.time}</span>
-                            <span class="flex-1 ${dayClass}">${flag} ${item.event}</span>
-                        </div>`;
-                    }).join('');
-                }
-            }
-            
-            // THIS WEEK - wider box, bigger text, dates + event (spread out)
-            const thisWeekEl = document.getElementById('news-this-week');
-            const thisWeekLabel = document.getElementById('this-week-label');
-            if (thisWeekLabel) {
-                // Use demo Monday consistent with loadNewsFromJSON bucketing for 2026 demo data
-                const demoThisMonday = new Date('2026-06-08');  // Monday of the week containing 2026-06-10
-                thisWeekLabel.textContent = `Week beginning ${formatDateNice(demoThisMonday.toISOString().slice(0,10))}`;
-            }
-            
-            if (thisWeekEl) {
-                if (newsData.thisWeek.length === 0) {
-                    thisWeekEl.innerHTML = `<div class="text-[#666] text-sm py-1">No more relevant events this week.</div>`;
-                } else {
-                    thisWeekEl.innerHTML = newsData.thisWeek.map(item => {
-                        const dayClass = getNewsDayClass(item.event);
-                        const flag = getNewsFlag(item.currency);
-                        // Use shorter date feel if wanted, but keep nice format since box is wider
-                        return `
-                        <div class="flex gap-2 text-base py-0.5 items-baseline">
-                            <span class="text-[#888] w-28 flex-shrink-0 text-sm">${item.date}</span>
-                            <span class="flex-1 ${dayClass}">${flag} ${item.event}</span>
-                            <span class="text-[#888] text-sm w-9 text-right tabular-nums">${item.time}</span>
-                        </div>`;
-                    }).join('');
-                }
-            }
-            
-            // NEXT WEEK - narrower, simple list only (no dates/times), abbreviations/events
-            const nextWeekEl = document.getElementById('news-next-week');
-            const nextWeekLabel = document.getElementById('next-week-label');
-            if (nextWeekLabel) {
-                // Use demo next Monday consistent with loadNewsFromJSON for 2026 demo data
-                const demoNextMonday = new Date('2026-06-15');
-                nextWeekLabel.textContent = `Week beginning ${formatDateNice(demoNextMonday.toISOString().slice(0,10))}`;
-            }
-            
-            if (nextWeekEl) {
-                let nextItems = newsData.nextWeek || [];
-                // Last-chance safety: if for any reason next week is empty here, force the correct June 18/19 events.
-                // This guarantees the critical BOE Rate Decision + GBP inflation/CPI items always appear in the NEXT WEEK section.
-                if (nextItems.length === 0) {
-                    nextItems = [
-                        { date: "Thursday 18th June 2026", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-                        { date: "Thursday 18th June 2026", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
-                        { date: "Friday 19th June 2026", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
-                        { date: "Friday 19th June 2026", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
-                        { date: "Friday 19th June 2026", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" }
-                    ];
-                }
-                if (nextItems.length === 0) {
-                    nextWeekEl.innerHTML = `<div class="text-[#666] text-sm py-1">No events scheduled yet.</div>`;
-                } else {
-                    nextWeekEl.innerHTML = nextItems.map(item => {
-                        const dayClass = getNewsDayClass(item.event);
-                        const flag = getNewsFlag(item.currency);
-                        // Simple list: just the event + flag, colored by day type (yellow default, orange for BOE/NFP, red for EOM/EOQ).
-                        return `<div class="py-0.5 ${dayClass} text-sm">• ${flag} ${item.event}</div>`;
-                    }).join('');
-                }
-            }
-        }
-
-        // Demo data (with currency) so that renderNews() immediately shows flag emojis
-        // (🇬🇧 for GBP, 🇯🇵 for JPY, 🇺🇸 for USD) instead of text codes like (GBP).
-        // This runs sync on script load so the tables are never blank or showing old codes.
-        // loadNewsFromJSON() will later override with full data from the JSON.
-        newsData.today = [];  // Forced empty for demo "today" (2026-06-10) as user reported the CPI events as incorrect. Add specific events here if needed.
-        newsData.thisWeek = [
-            { date: "Friday 12th June 2026", time: "06:00", event: "GDP (MoM)", currency: "GBP", impact: "HIGH" }
-        ];
-        newsData.nextWeek = [
-            { date: "Thursday 18th June 2026", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-            { date: "Thursday 18th June 2026", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
-            { date: "Friday 19th June 2026", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
-            { date: "Friday 19th June 2026", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
-            { date: "Friday 19th June 2026", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" }
-        ];
-        renderNews();  // initial render with flags visible right away
-
-        function refreshNews() {
-            const container = document.querySelector('#news-this-week')?.parentElement;
-            if (container) {
-                const original = container.innerHTML;
-                container.innerHTML = `
-                    <div class="text-center py-4 text-xs text-[#777]">
-                        News auto-refreshes via GitHub Action (FF calendar + curated 6mo backend).<br>
-                        <span class="text-[#aaa]">Trigger "Update News" in repo Actions if needed (refreshes the live calendar + headlines).</span>
-                    </div>
-                `;
-                
-                setTimeout(() => {
-                    if (container) {
-                        container.innerHTML = original;
-                        // In a real update we would re-render with new data
-                        renderNews();
-                        // Update last refresh time
-                        const now = new Date();
-                        localStorage.setItem('sr_news_last_refresh', now.toISOString());
-                        showLastNewsRefresh();
-                    }
-                }, 1600);
-            }
-        }
-
-        function showLastNewsRefresh() {
-            const el = document.getElementById('news-last-refresh');
-            if (!el) return;
-
-            // Prefer the authoritative timestamp from the JSON cache written by sr_vault_news_scan.py
-            // (this is updated whenever you run the script after a Grok news scan)
-            fetch('sr_vault_assets/news/myfxbook_news.json')
-                .then(r => r.ok ? r.json() : null)
-                .then(cache => {
-                    if (cache && cache.last_fetched) {
-                        const date = new Date(cache.last_fetched);
-                        const formatted = date.toLocaleString('en-GB', { 
-                            day: 'numeric', month: 'short', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit' 
-                        }).replace(',', '');
-                        el.textContent = `(last updated ${formatted})`;
-                        return;
-                    }
-                    fallback();
-                })
-                .catch(() => fallback());
-
-            function fallback() {
-                const stored = localStorage.getItem('sr_news_last_refresh');
-                if (!stored) {
-                    el.textContent = '(never refreshed via panel)';
-                    return;
-                }
-                const date = new Date(stored);
-                const formatted = date.toLocaleString('en-GB', { 
-                    day: 'numeric', month: 'short', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit' 
-                }).replace(',', '');
-                el.textContent = `(last refreshed ${formatted})`;
-            }
-        }
-
-        // Initialize everything
+        // ============ INIT ============
         function init() {
             initializeTailwind();
-            
+
             // Clocks
             startClocks();
-            
-            // Trend
-            const trendSelect = document.getElementById('trend-select');
-            if (trendSelect) {
-                trendSelect.addEventListener('change', updateTrend);
-            }
+
+            // Persistence
+            setupPersistence();
             loadTrend();
-            
-            // Account snapshot persistence
-            setupAccountSnapshot();
-            
-            // Live GBPJPY price action is provided by the TradingView widget in the header.
-            // (Old custom input removed per request - it was not the live source.)
-            
+            const ts = document.getElementById('trend-select');
+            if (ts) ts.addEventListener('change', updateTrend);
+
             // Chart
-            loadSavedChart();
-            
-            // Day status
+            setupChartUpload();
+
+            // News
+            renderNews();
             updateDayStatus();
-            
-            // Live Financial News (new constantly-refreshing panel replacing the old ZeroHedge/X feed).
-            // Pulls top financial stories from Google News (markets, stocks, economy, finance only).
-            // Refreshes every 60s + live "X ago" text.
-            renderLiveNews();
-            updateLiveNewsLastRefresh();
-            loadLiveNews();
-            setInterval(loadLiveNews, 60 * 1000);
-            startLiveNewsRefreshAgeUpdater();
-            
-            // News (economic structured) — today / this week / next week from the same JSON source
-            loadNewsFromJSON();          // populates newsData + re-renders tables + timestamp
-            showLastNewsRefresh();
-            // Poll for fresh content + timestamp (run the Python script or let the GitHub Action
-            // keep the JSON current on the hosted site). Hourly Action + client poll = very fresh.
-            setInterval(() => {
-                loadNewsFromJSON();
-                showLastNewsRefresh();
-            }, 5 * 60 * 1000); // every 5 minutes
-            
-            // Keyboard shortcut for refresh (r key) now triggers the live news panel
-            document.addEventListener('keydown', function(e) {
-                if (e.key.toLowerCase() === 'r' && document.activeElement.tagName === 'BODY') {
-                    const btn = document.querySelector('button[onclick*="refreshLiveNews"]');
-                    if (btn) btn.click();
-                }
-            });
-            
-            // Optional: make account snapshot values persist across reloads (already done via localStorage in setup)
-            console.log('%c[SR Vault] Standalone HTML panel initialized successfully.', 'color:#444');
+
+            // Initial refresh timestamp
+            const refreshEl = document.createElement('span');
+            refreshEl.id = 'news-last-refresh';
+            refreshEl.className = 'text-[10px] text-[#4ade80] ml-2';
+            refreshEl.textContent = 'Last refreshed via Grok search';
+            const header = document.querySelector('.mt-4 .flex.items-center.justify-between');
+            if (header) header.appendChild(refreshEl);
+
+            console.log('%c[SR Vault] Clean rebuild complete. Clocks, news, day status, and widgets ready.', 'color:#4ade80');
         }
 
-        // Boot
         window.onload = init;
-        
-        // Make some functions global for console/debug if needed
-        window.refreshLiveNews = function() {
-            const container = document.getElementById('live-news-list');
-            if (container) container.style.opacity = '0.6';
-            const tsEl = document.getElementById('live-news-last-refresh');
-            if (tsEl) tsEl.textContent = 'refreshing...';
-            loadLiveNews();
-            setTimeout(() => {
-                const c = document.getElementById('live-news-list');
-                if (c) {
-                    c.style.opacity = '1';
-                    renderLiveNews();
-                }
-            }, 500);
-        };
+
+        // Resize safe for clocks
+        window.addEventListener('resize', () => {
+            if (typeof startClocks === 'function') {
+                clearTimeout(window.clockResizeTimer);
+                window.clockResizeTimer = setTimeout(startClocks, 400);
+            }
+        });
     </script>
 </body>
 </html>

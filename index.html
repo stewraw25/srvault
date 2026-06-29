@@ -466,12 +466,21 @@
             <div class="dark-card rounded-2xl p-5 w-full max-w-[740px]">
                 <div class="font-semibold tracking-wider text-sm mb-3">NEWS EVENTS THAT SIGNIFY THE DAY COLOUR CHANGE</div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <div class="font-semibold text-[#f87171] mb-1">RED (EOM / EOQ)</div>
-                        <div class="text-[#888] text-xs">High-impact events on End of Month or End of Quarter (keyword match EOM/EOQ)</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div onclick="showDayRules('green')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
+                        <div class="font-semibold text-[#4ade80] mb-1">GREEN</div>
+                        <div class="text-[#888] text-xs">Normal trading day with no major high-impact events</div>
                     </div>
-                    <div>
+                    <div onclick="showDayRules('yellow')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
+                        <div class="font-semibold text-[#facc15] mb-1">YELLOW</div>
+                        <div class="text-xs space-y-0.5">
+                            <div>• CPI y/y</div>
+                            <div>• Core CPI y/y</div>
+                            <div>• UK Inflation Rate</div>
+                            <div>• US FOMC Interest Rate Decision</div>
+                        </div>
+                    </div>
+                    <div onclick="showDayRules('orange')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
                         <div class="font-semibold text-[#fb923c] mb-1">ORANGE (BOE or NFP)</div>
                         <div class="text-xs space-y-0.5">
                             <div>• BOE Interest Rate Decision (high impact)</div>
@@ -480,14 +489,9 @@
                             <div>• US Nonfarm Payrolls</div>
                         </div>
                     </div>
-                    <div>
-                        <div class="font-semibold text-[#facc15] mb-1">YELLOW</div>
-                        <div class="text-xs space-y-0.5">
-                            <div>• CPI y/y</div>
-                            <div>• Core CPI y/y</div>
-                            <div>• UK Inflation Rate</div>
-                            <div>• US FOMC Interest Rate Decision</div>
-                        </div>
+                    <div onclick="showDayRules('red')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
+                        <div class="font-semibold text-[#f87171] mb-1">RED (EOM / EOQ)</div>
+                        <div class="text-[#888] text-xs">High-impact events on End of Month or End of Quarter (keyword match EOM/EOQ)</div>
                     </div>
                 </div>
             </div>
@@ -693,14 +697,14 @@
         }
 
         // ============ DAY RULES POPUP ============
-        function showDayRules() {
+        function showDayRules(forcedColor) {
             const modal = document.getElementById('day-rules-modal');
             const badge = document.getElementById('modal-day-badge');
             const title = document.getElementById('modal-title');
             const body = document.getElementById('modal-body');
             if (!modal || !badge || !title || !body) return;
 
-            const color = getDayColor();
+            const color = forcedColor || getDayColor();
             let html = '';
 
             badge.className = `inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold status-${color}`;

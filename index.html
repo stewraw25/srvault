@@ -477,8 +477,8 @@
                     <div>
                         <div class="font-semibold text-[#fb923c] mb-1">ORANGE (BOE or NFP)</div>
                         <div class="text-xs space-y-0.5">
-                            <div>• BOE Interest Rate Decision</div>
-                            <div>• Bank of England MPC Rate Decision</div>
+                            <div>• BOE Interest Rate Decision (high impact)</div>
+                            <div>• Bank of England MPC Rate Decision (high impact)</div>
                             <div>• Non-Farm Payrolls (NFP)</div>
                             <div>• US Nonfarm Payrolls</div>
                         </div>
@@ -905,7 +905,7 @@
                 } else {
                     nEl.innerHTML = nextWeekEvents.map(e => {
                         const flag = getFlag(e.currency);
-                        return `<div class="py-0.5 text-sm">• ${flag} ${e.event}</div>`;
+                        return `<div class="py-0.5 text-sm"><span class="text-[#888]">${formatFullDate(e.date)}</span> • ${flag} ${e.event} <span class="text-[#888] text-xs">(${e.time})</span></div>`;
                     }).join('');
                 }
             }

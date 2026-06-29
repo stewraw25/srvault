@@ -1,6 +1,6 @@
 {
   "last_fetched": "2026-06-29T12:00:00.000000",
-  "source": "Updated by Grok - accurate as of 2026-06-29. No BOE rate decision this week (last June 18, next July 30).",
+  "source": "Updated by Grok - accurate as of 2026-06-29. No BOE rate decision this week (last June 18, next July 30). No speeches.",
   "events": [
     {
       "date": "2026-07-02",
@@ -30,6 +30,46 @@
       "date": "2026-07-02",
       "time_utc": "12:30",
       "event": "Average Hourly Earnings MoM",
+      "currency": "USD",
+      "impact": "HIGH",
+      "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-08",
+      "time_utc": "12:30",
+      "event": "US CPI y/y",
+      "currency": "USD",
+      "impact": "HIGH",
+      "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-08",
+      "time_utc": "12:30",
+      "event": "Core CPI y/y",
+      "currency": "USD",
+      "impact": "HIGH",
+      "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-09",
+      "time_utc": "07:00",
+      "event": "UK Inflation Rate",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-09",
+      "time_utc": "07:00",
+      "event": "Core CPI y/y",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-09",
+      "time_utc": "12:30",
+      "event": "US FOMC Interest Rate Decision",
       "currency": "USD",
       "impact": "HIGH",
       "source": "Grok curated"

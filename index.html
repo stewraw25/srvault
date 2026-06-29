@@ -773,29 +773,13 @@
             return `${weekday} ${day}${ordinal} ${month} ${year}`;
         }
 
-        function getOrdinal(n) {
-            if (n > 3 && n < 21) return 'th';
-            switch (n % 10) {
-                case 1: return 'st';
-                case 2: return 'nd';
-                case 3: return 'rd';
-                default: return 'th';
-            }
-        }
-
-        function getFullWeekday(iso) {
+        function formatDateOnly(iso) {
             const d = new Date(iso);
-            return d.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
-        }
-
-        function formatFullDate(iso) {
-            const d = new Date(iso);
-            const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
             const day = d.getDate();
             const month = d.toLocaleDateString('en-GB', { month: 'long' });
             const year = d.getFullYear();
             const ordinal = getOrdinal(day);
-            return `${weekday} ${day}${ordinal} ${month} ${year}`;
+            return `${day}${ordinal} ${month} ${year}`;
         }
 
         function getOrdinal(n) {
@@ -873,7 +857,7 @@
                 } else {
                     nEl.innerHTML = nextWeekEvents.map(e => {
                         const flag = getFlag(e.currency);
-                        return `<div class="py-0.5 text-sm"><span class="text-[#888]">${formatFullDate(e.date)}</span> • ${flag} ${e.event} <span class="text-[#888] text-xs">(${e.time})</span></div>`;
+                        return `<div class="py-0.5 text-sm">• ${flag} ${e.event} <span class="text-[#888]">${formatDateOnly(e.date)}</span></div>`;
                     }).join('');
                 }
             }

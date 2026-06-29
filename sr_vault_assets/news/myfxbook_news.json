@@ -65,14 +65,6 @@
       "currency": "GBP",
       "impact": "HIGH",
       "source": "Grok curated"
-    },
-    {
-      "date": "2026-07-09",
-      "time_utc": "12:30",
-      "event": "US FOMC Interest Rate Decision",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Grok curated"
     }
   ]
 }

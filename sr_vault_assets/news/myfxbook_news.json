@@ -21,7 +21,7 @@
     {
       "date": "2026-07-02",
       "time_utc": "12:30",
-      "event": "Non-Farm Payrolls (NFP)",
+      "event": "US Nonfarm Payrolls",
       "currency": "USD",
       "impact": "HIGH",
       "source": "Manual update"
@@ -29,7 +29,7 @@
     {
       "date": "2026-07-02",
       "time_utc": "12:30",
-      "event": "US Nonfarm Payrolls",
+      "event": "Non-Farm Payrolls (NFP)",
       "currency": "USD",
       "impact": "HIGH",
       "source": "Manual update"
@@ -63,6 +63,14 @@
       "time_utc": "07:00",
       "event": "Core CPI y/y",
       "currency": "GBP",
+      "impact": "HIGH",
+      "source": "Manual update"
+    },
+    {
+      "date": "2026-07-03",
+      "time_utc": "12:30",
+      "event": "US FOMC Interest Rate Decision",
+      "currency": "USD",
       "impact": "HIGH",
       "source": "Manual update"
     }

@@ -754,14 +754,13 @@
         // ============ NEWS (Grok refreshed, strict curated list only) ============
         let newsEvents = [
             // Corrected for current week (as of 2026-06-29). UK Inflation next on 22 July.
-            // NFP this week (Friday)
+            // NFP this week (Friday) - sorted earliest first
+            { date: "2026-07-01", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
+            { date: "2026-07-01", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
             { date: "2026-07-02", time: "12:30", event: "US Nonfarm Payrolls", currency: "USD", impact: "HIGH" },
             { date: "2026-07-02", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH" },
             { date: "2026-07-02", time: "12:30", event: "Average Hourly Earnings MoM", currency: "USD", impact: "HIGH" },
             { date: "2026-07-02", time: "12:30", event: "Unemployment Rate", currency: "USD", impact: "HIGH" },
-            // Other high-impact GBP/USD events user watches this period
-            { date: "2026-07-01", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-            { date: "2026-07-01", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
             { date: "2026-07-03", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
             { date: "2026-07-03", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" },
             { date: "2026-07-03", time: "12:30", event: "US FOMC Interest Rate Decision", currency: "USD", impact: "HIGH" }
@@ -784,6 +783,26 @@
             return d.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
         }
 
+        function formatFullDate(iso) {
+            const d = new Date(iso);
+            const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+            const day = d.getDate();
+            const month = d.toLocaleDateString('en-GB', { month: 'long' });
+            const year = d.getFullYear();
+            const ordinal = getOrdinal(day);
+            return `${weekday} ${day}${ordinal} ${month} ${year}`;
+        }
+
+        function getOrdinal(n) {
+            if (n > 3 && n < 21) return 'th';
+            switch (n % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
         function getFlag(c) {
             if (c === 'GBP') return '🇬🇧';
             if (c === 'JPY') return '🇯🇵';
@@ -800,15 +819,15 @@
             nextMonday.setDate(nextMonday.getDate() + 7);
             const nextMondayStr = nextMonday.toISOString().slice(0, 10);
 
-            const todayEvents = newsEvents.filter(e => e.date === todayStr);
+            const todayEvents = newsEvents.filter(e => e.date === todayStr).sort((a, b) => a.date.localeCompare(b.date));
             const thisWeekEvents = newsEvents.filter(e => {
                 const d = e.date;
                 return d >= thisMondayStr && d <= new Date(new Date(thisMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
-            });
+            }).sort((a, b) => a.date.localeCompare(b.date));
             const nextWeekEvents = newsEvents.filter(e => {
                 const d = e.date;
                 return d >= nextMondayStr && d <= new Date(new Date(nextMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
-            });
+            }).sort((a, b) => a.date.localeCompare(b.date));
 
             // TODAY
             const tEl = document.getElementById('news-today');
@@ -832,9 +851,11 @@
                 if (thisWeekEvents.length === 0) {
                     wEl.innerHTML = '<div class="text-[#666] text-sm">No more relevant events this week.</div>';
                 } else {
+                    // Sort earliest first
+                    thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date));
                     wEl.innerHTML = thisWeekEvents.map(e => {
                         const flag = getFlag(e.currency);
-                        return `<div class="flex gap-2 text-sm py-0.5"><span class="text-[#888] w-28 flex-shrink-0">${getFullWeekday(e.date)}</span> <span>${flag} ${e.event}</span> <span class="text-[#888] text-xs ml-auto">${e.time}</span></div>`;
+                        return `<div class="flex gap-2 text-sm py-0.5"><span class="text-[#888] w-auto flex-shrink-0">${formatFullDate(e.date)}</span> <span>${flag} ${e.event}</span> <span class="text-[#888] text-xs ml-auto">${e.time}</span></div>`;
                     }).join('');
                 }
             }

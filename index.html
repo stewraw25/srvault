@@ -387,10 +387,8 @@
         </div>
 
         <!-- DAY STATUS BAR (click for rules) -->
-        <div id="day-status-bar" onclick="showDayRules()" class="mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 status-green border cursor-pointer hover:brightness-110 transition-all" title="Click to view day rules">
-            <span>🟢</span> 
-            <span id="day-status-text">Normal Trading Conditions Resume</span>
-            <span class="text-[10px] opacity-70 ml-1">(click for rules)</span>
+        <div id="day-status-bar" onclick="showDayRules()" class="mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border cursor-pointer hover:brightness-110 transition-all" title="Click to view day rules">
+            <div id="day-status-text" class="flex flex-col items-center"></div>
         </div>
 
         <!-- DAY RULES MODAL -->
@@ -521,8 +519,9 @@
                     <line id="${id}-minute" x1="100" y1="100" x2="100" y2="38" stroke="#E8E8E8" stroke-width="3.8" stroke-linecap="round"/>
                     <line id="${id}-second" x1="100" y1="100" x2="100" y2="30" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
                     <circle cx="100" cy="100" r="6" fill="#111" stroke="#555" stroke-width="1"/>
-                    <!-- IWC LOGO IN EXACT CENTER - BIG LETTERS -->
-                    <text x="100" y="105" text-anchor="middle" dominant-baseline="middle" fill="#C5A572" font-size="22" font-weight="700" font-family="'Space Grotesk', Inter, system_ui, sans-serif" letter-spacing="2">IWC</text>
+                    <!-- IWC branding - copied from real IWC watches (sits lower, not dead center) -->
+                    <text x="100" y="125" text-anchor="middle" dominant-baseline="middle" fill="#C5A572" font-size="19" font-weight="700" font-family="'Space Grotesk', Inter, system_ui, sans-serif" letter-spacing="2">IWC</text>
+                    <text x="100" y="138" text-anchor="middle" dominant-baseline="middle" fill="#C5A572" font-size="6.5" font-weight="500" font-family="'Space Grotesk', Inter, system_ui, sans-serif" letter-spacing="1">SCHAFFHAUSEN</text>
                     <circle cx="100" cy="100" r="1.8" fill="#f4e9c8"/>
                 </svg>
             `;
@@ -652,16 +651,44 @@
             if (!bar || !text) return;
 
             const color = getDayColor();
-            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border status-${color}`;
+            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border status-${color} cursor-pointer hover:brightness-110 transition-all`;
 
             if (color === 'green') {
-                text.innerHTML = '🟢 Normal Trading Conditions Resume';
+                text.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-sm">
+                        <span>🟢</span> 
+                        <span class="font-semibold">GREEN DAY</span> 
+                        <span>🟢</span>
+                    </div>
+                    <div class="text-xs font-normal">Normal Trading Conditions Apply</div>
+                `;
             } else if (color === 'yellow') {
-                text.innerHTML = '🟡 Yellow News Day — Exercise Caution';
+                text.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-sm">
+                        <span>🟡</span> 
+                        <span class="font-semibold">YELLOW DAY</span> 
+                        <span>🟡</span>
+                    </div>
+                    <div class="text-xs font-normal">Moderate Impact News Day — Exercise Caution</div>
+                `;
             } else if (color === 'orange') {
-                text.innerHTML = '🟠 Orange News Day (BOE / NFP) — High Impact';
+                text.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-sm">
+                        <span>🟠</span> 
+                        <span class="font-semibold">ORANGE DAY</span> 
+                        <span>🟠</span>
+                    </div>
+                    <div class="text-xs font-normal">High Impact News Day (BOE / NFP) — High Volatility</div>
+                `;
             } else if (color === 'red') {
-                text.innerHTML = '🔴 Red News Day (EOM / EOQ) — Major Caution';
+                text.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-sm">
+                        <span>🔴</span> 
+                        <span class="font-semibold">RED DAY</span> 
+                        <span>🔴</span>
+                    </div>
+                    <div class="text-xs font-normal">Major Caution Day (EOM / EOQ) — Liquidity Issues</div>
+                `;
             }
         }
 

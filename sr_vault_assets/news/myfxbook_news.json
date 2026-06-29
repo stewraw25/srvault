@@ -3,22 +3,6 @@
   "source": "Updated by Grok - accurate as of 2026-06-29. No BOE rate decision this week (last June 18, next July 30).",
   "events": [
     {
-      "date": "2026-07-01",
-      "time_utc": "09:30",
-      "event": "BoE's Breeden speech",
-      "currency": "GBP",
-      "impact": "MEDIUM",
-      "source": "Grok curated"
-    },
-    {
-      "date": "2026-07-01",
-      "time_utc": "09:45",
-      "event": "BoE's Governor Bailey speech",
-      "currency": "GBP",
-      "impact": "MEDIUM",
-      "source": "Grok curated"
-    },
-    {
       "date": "2026-07-02",
       "time_utc": "12:30",
       "event": "US Nonfarm Payrolls",

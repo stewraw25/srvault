@@ -1,189 +1,54 @@
 {
-  "last_fetched": "2026-06-11T10:05:09.638755",
-  "source": "Auto (Forex Factory near-term + curated backend calendar for 6 months)",
+  "last_fetched": "2026-06-29T10:00:00.000000",
+  "source": "Updated for NFP week - GBP/JPY focus",
   "events": [
     {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "Core CPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "Core CPI y/y",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-10",
-      "time_utc": "12:30",
-      "event": "CPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-11",
-      "time_utc": "12:30",
-      "event": "Core PPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-11",
-      "time_utc": "12:30",
-      "event": "PPI m/m",
-      "currency": "USD",
-      "impact": "HIGH",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
+      "date": "2026-06-30",
       "time_utc": "06:00",
-      "event": "GDP m/m",
+      "event": "UK Inflation Rate",
       "currency": "GBP",
       "impact": "HIGH",
-      "source": "Forex Factory"
+      "source": "Manual update"
     },
     {
-      "date": "2026-06-12",
-      "time_utc": "08:30",
-      "event": "Consumer Inflation Expectations",
-      "currency": "GBP",
-      "impact": "LOW",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
-      "time_utc": "14:00",
-      "event": "Prelim UoM Inflation Expectations",
-      "currency": "USD",
-      "impact": "MEDIUM",
-      "source": "Forex Factory"
-    },
-    {
-      "date": "2026-06-12",
-      "time_utc": "06:00",
-      "event": "GDP (MoM)",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-06-18",
+      "date": "2026-07-01",
       "time_utc": "12:00",
       "event": "BOE Interest Rate Decision",
       "currency": "GBP",
-      "impact": "HIGH"
+      "impact": "HIGH",
+      "source": "Manual update"
     },
     {
-      "date": "2026-06-18",
+      "date": "2026-07-01",
       "time_utc": "12:00",
       "event": "Bank of England MPC Rate Decision",
       "currency": "GBP",
-      "impact": "HIGH"
+      "impact": "HIGH",
+      "source": "Manual update"
     },
     {
-      "date": "2026-06-19",
-      "time_utc": "07:00",
-      "event": "CPI y/y",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-06-19",
-      "time_utc": "07:00",
-      "event": "UK Inflation Rate",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-06-19",
-      "time_utc": "07:00",
-      "event": "Core CPI y/y",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-06-25",
+      "date": "2026-07-02",
       "time_utc": "12:30",
-      "event": "Core CPI (MoM)",
+      "event": "Non-Farm Payrolls (NFP)",
       "currency": "USD",
-      "impact": "HIGH"
+      "impact": "HIGH",
+      "source": "Manual update"
+    },
+    {
+      "date": "2026-07-02",
+      "time_utc": "12:30",
+      "event": "US Nonfarm Payrolls",
+      "currency": "USD",
+      "impact": "HIGH",
+      "source": "Manual update"
     },
     {
       "date": "2026-07-03",
-      "time_utc": "12:30",
-      "event": "Non-Farm Payrolls",
-      "currency": "USD",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-07-03",
-      "time_utc": "12:30",
-      "event": "NFP",
-      "currency": "USD",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-07-10",
-      "time_utc": "12:30",
-      "event": "CPI (MoM)",
-      "currency": "USD",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-07-16",
-      "time_utc": "12:00",
-      "event": "BOE Interest Rate Decision",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-07-17",
       "time_utc": "07:00",
       "event": "CPI y/y",
       "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-07-17",
-      "time_utc": "07:00",
-      "event": "UK Inflation Rate",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-08-01",
-      "time_utc": "12:30",
-      "event": "Non-Farm Payrolls",
-      "currency": "USD",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-08-07",
-      "time_utc": "12:30",
-      "event": "CPI (MoM)",
-      "currency": "USD",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-08-13",
-      "time_utc": "12:00",
-      "event": "BOE Interest Rate Decision",
-      "currency": "GBP",
-      "impact": "HIGH"
-    },
-    {
-      "date": "2026-08-14",
-      "time_utc": "07:00",
-      "event": "CPI y/y",
-      "currency": "GBP",
-      "impact": "HIGH"
+      "impact": "HIGH",
+      "source": "Manual update"
     }
   ]
 }

@@ -415,7 +415,7 @@
         <div class="mt-4">
             <div class="flex items-center justify-between mb-2">
                 <div class="font-semibold tracking-wider text-sm">RELEVANT NEWS — GBP / JPY FOCUS</div>
-                <div class="text-[10px] text-[#888]">Data: Curated high-impact (GBP/JPY focus) • <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh from Grok</button></div>
+                <div class="text-[10px] text-[#888]">Data: High-impact GBP/JPY events (public Forex Factory via GitHub Action) • Curated by Grok • <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh</button></div>
             </div>
             
             <div class="flex flex-col md:flex-row gap-3">
@@ -751,20 +751,37 @@
             }
         }
 
-        // ============ NEWS (Grok refreshed, strict curated list only) ============
-        let newsEvents = [
-            // Corrected for current week (as of 2026-06-29). UK Inflation next on 22 July.
-            // NFP this week (Friday) - sorted earliest first
-            { date: "2026-07-01", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-            { date: "2026-07-01", time: "12:00", event: "Bank of England MPC Rate Decision", currency: "GBP", impact: "HIGH" },
-            { date: "2026-07-02", time: "12:30", event: "US Nonfarm Payrolls", currency: "USD", impact: "HIGH" },
-            { date: "2026-07-02", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH" },
-            { date: "2026-07-02", time: "12:30", event: "Average Hourly Earnings MoM", currency: "USD", impact: "HIGH" },
-            { date: "2026-07-02", time: "12:30", event: "Unemployment Rate", currency: "USD", impact: "HIGH" },
-            { date: "2026-07-03", time: "07:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
-            { date: "2026-07-03", time: "07:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH" },
-            { date: "2026-07-03", time: "12:30", event: "US FOMC Interest Rate Decision", currency: "USD", impact: "HIGH" }
-        ];
+        // ============ NEWS - Loaded reliably from JSON (updated by GitHub Action + Grok curation) ============
+        // Most reliable for this static site:
+        // - GitHub Action (update-news.yml) runs sr_vault_news_scan.py every hour
+        // - Script fetches from public Forex Factory JSON (reliable, no key)
+        // - Strict whitelist in the Python script (only events you care about for GBPJPY)
+        // - Grok (me) updates the whitelist/curated events when you ask "update the news whitelist"
+        // - Client fetches the JSON here
+        let newsEvents = [];
+
+        async function loadNewsFromJSON() {
+            try {
+                const res = await fetch('sr_vault_assets/news/myfxbook_news.json', { cache: 'no-store' });
+                if (!res.ok) throw new Error('JSON load failed');
+                const data = await res.json();
+                newsEvents = (data.events || []).map(e => ({
+                    date: e.date,
+                    time: e.time_utc || e.time || '',
+                    event: e.event,
+                    currency: e.currency || '',
+                    impact: e.impact || 'HIGH'
+                }));
+            } catch (err) {
+                console.error('Failed to load news JSON', err);
+                // Fallback with NFP
+                newsEvents = [
+                    { date: "2026-07-02", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH" }
+                ];
+            }
+            renderNews();
+            updateDayStatus();
+        }
 
         function getWeekStart(d) {
             const date = new Date(d);
@@ -776,6 +793,26 @@
         function formatDateNice(iso) {
             const d = new Date(iso);
             return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function formatFullDate(iso) {
+            const d = new Date(iso);
+            const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+            const day = d.getDate();
+            const month = d.toLocaleDateString('en-GB', { month: 'long' });
+            const year = d.getFullYear();
+            const ordinal = getOrdinal(day);
+            return `${weekday} ${day}${ordinal} ${month} ${year}`;
+        }
+
+        function getOrdinal(n) {
+            if (n > 3 && n < 21) return 'th';
+            switch (n % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
         }
 
         function getFullWeekday(iso) {
@@ -886,11 +923,10 @@
                 }
             }
             const el = document.getElementById('news-last-refresh');
-            if (el) el.textContent = `Refreshed via Grok search at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+            if (el) el.textContent = `Refreshed at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
 
-            // Re-render (in real use you would replace the newsEvents array here)
-            renderNews();
-            updateDayStatus();
+            // Reload from the JSON (updated by GitHub Action)
+            loadNewsFromJSON();
         }
 
         // ============ CHART UPLOAD ============
@@ -998,9 +1034,8 @@
             // Chart
             setupChartUpload();
 
-            // News
-            renderNews();
-            updateDayStatus();
+            // News - load from reliable JSON
+            loadNewsFromJSON();
 
             // Initial refresh timestamp
             const refreshEl = document.createElement('span');

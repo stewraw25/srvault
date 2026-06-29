@@ -341,48 +341,15 @@
                 <div id="chart-last-updated" class="text-[10px] text-[#888] mt-auto pt-1.5 px-1 text-center">Last updated: Today</div>
             </div>
 
-            <!-- Box 3: LIVE FINANCIAL NEWS - Market Overview -->
+            <!-- Box 3: LIVE FINANCIAL NEWS CALENDAR (rebuilt custom) -->
             <div class="flex-[1] dark-card rounded-3xl p-5 flex flex-col min-h-[220px] md:min-h-[420px]">
                 <div class="mb-2 px-1">
-                    <div class="font-semibold tracking-wider text-sm">LIVE FINANCIAL NEWS</div>
-                    <div class="text-[10px] text-[#888]">Market Overview • Auto-refreshing</div>
+                    <div class="font-semibold tracking-wider text-sm">LIVE FINANCIAL NEWS CALENDAR</div>
+                    <div class="text-[10px] text-[#888]">GBP/JPY Focus • Curated high-impact • Auto-refreshing</div>
                 </div>
                 
-                <div class="flex-1 bg-[#0a0a0a] rounded-xl overflow-hidden border border-[#222]">
-                    <div class="tradingview-widget-container h-full">
-                        <div class="tradingview-widget-container__widget h-full"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-                        {
-                        "colorTheme": "dark",
-                        "dateRange": "1D",
-                        "showChart": true,
-                        "locale": "en",
-                        "largeChartUrl": "",
-                        "isTransparent": false,
-                        "width": "100%",
-                        "height": "100%",
-                        "plotLineColorGrowing": "#22c55e",
-                        "plotLineColorFalling": "#ef4444",
-                        "gridLineColor": "#2a2a2a",
-                        "scaleFontColor": "#787b86",
-                        "belowLineFillColorGrowing": "rgba(34, 197, 94, 0.1)",
-                        "belowLineFillColorFalling": "rgba(239, 68, 68, 0.1)",
-                        "symbolActiveColor": "rgba(34, 197, 94, 0.1)",
-                        "tabs": [
-                          {
-                            "title": "Indices",
-                            "symbols": [
-                              { "s": "INDEX:SPX", "d": "S&P 500" },
-                              { "s": "INDEX:DJI", "d": "Dow" },
-                              { "s": "INDEX:IXIC", "d": "Nasdaq" },
-                              { "s": "INDEX:FTSE", "d": "FTSE 100" },
-                              { "s": "INDEX:NKY", "d": "Nikkei" }
-                            ]
-                          }
-                        ]
-                        }
-                        </script>
-                    </div>
+                <div id="news-calendar" class="flex-1 overflow-auto bg-[#0a0a0a] rounded-xl border border-[#222] p-3 text-sm">
+                    <!-- Populated by JS from news data -->
                 </div>
             </div>
         </div>
@@ -781,6 +748,7 @@
             }
             renderNews();
             updateDayStatus();
+            renderNewsCalendar();
         }
 
         function getWeekStart(d) {
@@ -927,6 +895,50 @@
 
             // Reload from the JSON (updated by GitHub Action)
             loadNewsFromJSON();
+            renderNewsCalendar();
+        }
+
+        // ============ REBUILT CUSTOM LIVE FINANCIAL NEWS CALENDAR WIDGET ============
+        function renderNewsCalendar() {
+            const container = document.getElementById('news-calendar');
+            if (!container) return;
+
+            if (!newsEvents || newsEvents.length === 0) {
+                container.innerHTML = '<div class="text-[#666] text-sm p-2">No calendar data available. Check JSON or refresh.</div>';
+                return;
+            }
+
+            // Sort all events by date, show upcoming (from today)
+            const nowStr = new Date().toISOString().slice(0, 10);
+            const upcoming = newsEvents
+                .filter(e => e.date >= nowStr)
+                .sort((a, b) => a.date.localeCompare(b.date))
+                .slice(0, 8);  // limit to keep it compact
+
+            if (upcoming.length === 0) {
+                container.innerHTML = '<div class="text-[#666] text-sm p-2">No upcoming high-impact events.</div>';
+                return;
+            }
+
+            let html = '<div class="space-y-1">';
+            upcoming.forEach(e => {
+                const flag = getFlag(e.currency);
+                let cls = 'news-yellow';
+                if (orangeTriggers.includes(e.event)) cls = 'news-orange';
+                if (redKeywords.some(k => e.event.toUpperCase().includes(k))) cls = 'news-red';
+                const dateNice = formatFullDate(e.date);
+                html += `
+                    <div class="${cls} flex items-start gap-2 p-1.5 rounded text-xs border-l-2 border-current">
+                        <div class="font-mono text-[#888] w-[52px] flex-shrink-0">${e.time}</div>
+                        <div class="flex-1">
+                            <div class="font-medium">${flag} ${e.event}</div>
+                            <div class="text-[10px] text-[#888]">${dateNice}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         // ============ CHART UPLOAD ============

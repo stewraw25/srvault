@@ -452,7 +452,8 @@
                     <li><strong>Wait for candle close</strong> at your zone or level – avoid entering mid-candle.</li>
                     <li><strong>Look for confluences</strong>: price action + news + indicators + volume.</li>
                     <li><strong>Risk management first</strong>: Never risk more than 1% of your account per trade.</li>
-                    <li><strong>Avoid trading into major news</strong> unless you have a proven reversal strategy and rules.</li>
+                    <li><strong>If zone is 30 pips or more</strong> then split the order position over top and bottom of zone.</li>
+                    <li><strong>PLAN IN BIG SWING MOVES</strong> for news event like BOE &amp; NFP beforehand.</li>
                     <li><strong>Keep a chart journal</strong>: Screenshot setups, note why you entered, review weekly.</li>
                     <li><strong>Patience is key</strong>: Only take A+ setups that match your rules.</li>
                 </ul>
@@ -679,10 +680,10 @@
                 text.innerHTML = `
                     <div class="flex items-center gap-1.5 text-sm">
                         <span>🟠</span> 
-                        <span class="font-semibold">ORANGE DAY</span> 
+                        <span class="font-semibold">BOE & NFP</span> 
                         <span>🟠</span>
                     </div>
-                    <div class="text-xs font-normal">High Impact News Day (BOE / NFP) — High Volatility</div>
+                    <div class="text-xs font-normal">High Impact Day</div>
                 `;
             } else if (color === 'red') {
                 text.innerHTML = `
@@ -738,16 +739,25 @@
                 badge.innerHTML = '🟠 ORANGE DAY (BOE / NFP)';
                 title.textContent = 'High Impact News Day';
                 html = `
-                    <p>High volatility expected (BOE Interest Rate Decision or NFP).</p>
-                    <ul class="list-disc pl-5 mt-3 space-y-1 text-xs">
-                        <li>Strongly consider reducing size to 25-50% or staying flat before the release</li>
-                        <li>Do not hold open positions through the number unless you have a specific post-data strategy</li>
-                        <li>Wait minimum 15-30 minutes after the release before considering new entries</li>
-                        <li>Only trade the reaction if there is clear follow-through and confluences</li>
-                        <li>Wider spreads and slippage are common — use limit orders where possible</li>
-                        <li>Many funded traders sit these events out entirely</li>
-                    </ul>
-                    <p class="mt-3 text-xs text-[#fb923c]">BOE / NFP specific: These are two of the highest impact events for GBP/JPY. Treat with maximum respect.</p>
+                    <div>
+                        <strong>BOE Rules:</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1 text-xs">
+                            <li>No getting into ANY BUYS 2 days before</li>
+                            <li>Look for selloff days before and then pump on the morning of NFP</li>
+                            <li>No getting into any trade until the earliest (9am the following day)</li>
+                        </ul>
+                    </div>
+                    <div class="mt-3">
+                        <strong>NFP Rules:</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1 text-xs">
+                            <li>No getting into ANY BUYS 2 days before</li>
+                            <li>Look for selloff days before and then pump on the morning of NFP</li>
+                            <li>No getting into any trade until the earliest (9am the following day)</li>
+                            <li>Wait for the initial reaction after the 9am mark before entering</li>
+                            <li>Avoid holding positions over the NFP release if possible</li>
+                            <li>Use the post-NFP pump for potential buys only after confirmation</li>
+                        </ul>
+                    </div>
                 `;
             } else if (color === 'red') {
                 badge.innerHTML = '🔴 RED DAY (EOM / EOQ)';

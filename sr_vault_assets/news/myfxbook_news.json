@@ -1,6 +1,6 @@
 {
-  "last_fetched": "2026-07-14T14:50:00.000000",
-  "source": "Updated by Grok 2026-07-14 — US CPI day (Core CPI / CPI m/m & y/y at 12:30 UTC). Rest of week: PPI, BOE, UK CPI.",
+  "last_fetched": "2026-07-14T15:05:00.000000",
+  "source": "Updated by Grok 2026-07-14. US CPI today verified. Next BOE from bankofengland.co.uk/monetary-policy/upcoming-mpc-dates = Thursday 30 July 2026 (NOT 16 July). Rest of week: PPI, UK CPI.",
   "events": [
     {
       "date": "2026-07-14",
@@ -51,30 +51,6 @@
       "source": "Grok curated"
     },
     {
-      "date": "2026-07-16",
-      "time_utc": "06:00",
-      "event": "GDP m/m",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "source": "Grok curated"
-    },
-    {
-      "date": "2026-07-16",
-      "time_utc": "12:00",
-      "event": "BOE Interest Rate Decision",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "source": "Grok curated"
-    },
-    {
-      "date": "2026-07-16",
-      "time_utc": "12:00",
-      "event": "Bank of England MPC Rate Decision",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "source": "Grok curated"
-    },
-    {
       "date": "2026-07-17",
       "time_utc": "07:00",
       "event": "CPI y/y",
@@ -97,6 +73,22 @@
       "currency": "GBP",
       "impact": "HIGH",
       "source": "Grok curated"
+    },
+    {
+      "date": "2026-07-30",
+      "time_utc": "11:00",
+      "event": "BOE Interest Rate Decision",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "source": "Bank of England official MPC calendar"
+    },
+    {
+      "date": "2026-07-30",
+      "time_utc": "11:00",
+      "event": "Bank of England MPC Rate Decision",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "source": "Bank of England official MPC calendar"
     }
   ]
 }

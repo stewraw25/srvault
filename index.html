@@ -853,15 +853,15 @@
                 }));
             } catch (err) {
                 console.error('Failed to load news JSON', err);
-                // Fallback: US CPI day week of 14 Jul 2026 (used if JSON fetch fails / file://)
+                // Fallback (used if JSON fetch fails / file://) — BOE is 30 Jul 2026 per BOE official calendar
                 newsEvents = [
                     { date: "2026-07-14", time: "12:30", event: "Core CPI m/m", currency: "USD", impact: "HIGH" },
                     { date: "2026-07-14", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH" },
                     { date: "2026-07-14", time: "12:30", event: "CPI m/m", currency: "USD", impact: "HIGH" },
                     { date: "2026-07-14", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH" },
                     { date: "2026-07-15", time: "12:30", event: "PPI m/m", currency: "USD", impact: "HIGH" },
-                    { date: "2026-07-16", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-                    { date: "2026-07-17", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" }
+                    { date: "2026-07-17", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
+                    { date: "2026-07-30", time: "11:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" }
                 ];
             }
             renderNews();

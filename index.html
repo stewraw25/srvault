@@ -660,12 +660,24 @@
         }
 
         // ============ DAY STATUS + COLOUR LOGIC ============
-        const yellowTriggers = ['CPI y/y', 'Core CPI y/y', 'UK Inflation Rate', 'US FOMC Interest Rate Decision'];
-        const orangeTriggers = ['BOE Interest Rate Decision', 'Bank of England MPC Rate Decision', 'Non-Farm Payrolls (NFP)', 'US Nonfarm Payrolls'];
+        // Use local calendar date (not UTC) so UK traders see the correct trading day.
+        function localYMD(d = new Date()) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        const yellowTriggers = ['CPI y/y', 'Core CPI y/y', 'CPI m/m', 'Core CPI m/m', 'CPI (MoM)', 'Core CPI (MoM)', 'US CPI y/y', 'UK Inflation Rate', 'US FOMC Interest Rate Decision', 'FOMC Interest Rate Decision', 'FED Interest Rate Decision'];
+        const orangeTriggers = ['BOE Interest Rate Decision', 'Bank of England MPC Rate Decision', 'Non-Farm Payrolls (NFP)', 'US Nonfarm Payrolls', 'Non-Farm Payrolls', 'NFP'];
         const redKeywords = ['EOM', 'EOQ', 'End of Month', 'End of Quarter'];
 
+        function eventMatchesList(evName, list) {
+            const n = (evName || '').trim();
+            if (!n) return false;
+            if (list.includes(n)) return true;
+            const u = n.toUpperCase();
+            return list.some(t => u === String(t).toUpperCase() || u.includes(String(t).toUpperCase()));
+        }
+
         function getDayColor() {
-            const today = new Date().toISOString().slice(0, 10);
+            const today = localYMD();
             // Check against our news list below
             const todayEvents = newsEvents.filter(e => e.date === today);
             
@@ -673,10 +685,10 @@
                 if (redKeywords.some(k => ev.event.toUpperCase().includes(k))) return 'red';
             }
             for (let ev of todayEvents) {
-                if (orangeTriggers.includes(ev.event)) return 'orange';
+                if (eventMatchesList(ev.event, orangeTriggers)) return 'orange';
             }
             for (let ev of todayEvents) {
-                if (yellowTriggers.includes(ev.event)) return 'yellow';
+                if (eventMatchesList(ev.event, yellowTriggers)) return 'yellow';
             }
             return 'green';
         }
@@ -841,9 +853,15 @@
                 }));
             } catch (err) {
                 console.error('Failed to load news JSON', err);
-                // Fallback with NFP
+                // Fallback: US CPI day week of 14 Jul 2026 (used if JSON fetch fails / file://)
                 newsEvents = [
-                    { date: "2026-07-02", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH" }
+                    { date: "2026-07-14", time: "12:30", event: "Core CPI m/m", currency: "USD", impact: "HIGH" },
+                    { date: "2026-07-14", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH" },
+                    { date: "2026-07-14", time: "12:30", event: "CPI m/m", currency: "USD", impact: "HIGH" },
+                    { date: "2026-07-14", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH" },
+                    { date: "2026-07-15", time: "12:30", event: "PPI m/m", currency: "USD", impact: "HIGH" },
+                    { date: "2026-07-16", time: "12:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
+                    { date: "2026-07-17", time: "07:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" }
                 ];
             }
             renderNews();
@@ -900,21 +918,27 @@
 
         function renderNews() {
             const now = new Date();
-            const todayStr = now.toISOString().slice(0, 10);
+            const todayStr = localYMD(now);
             const thisMonday = getWeekStart(now);
-            const thisMondayStr = thisMonday.toISOString().slice(0, 10);
+            const thisMondayStr = localYMD(thisMonday);
+            const thisWeekEnd = new Date(thisMonday);
+            thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
+            const thisWeekEndStr = localYMD(thisWeekEnd);
             const nextMonday = new Date(thisMonday);
             nextMonday.setDate(nextMonday.getDate() + 7);
-            const nextMondayStr = nextMonday.toISOString().slice(0, 10);
+            const nextMondayStr = localYMD(nextMonday);
+            const nextWeekEnd = new Date(nextMonday);
+            nextWeekEnd.setDate(nextWeekEnd.getDate() + 6);
+            const nextWeekEndStr = localYMD(nextWeekEnd);
 
             const todayEvents = newsEvents.filter(e => e.date === todayStr).sort((a, b) => a.date.localeCompare(b.date));
             const thisWeekEvents = newsEvents.filter(e => {
                 const d = e.date;
-                return d >= thisMondayStr && d <= new Date(new Date(thisMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
+                return d >= thisMondayStr && d <= thisWeekEndStr && d !== todayStr;
             }).sort((a, b) => a.date.localeCompare(b.date));
             const nextWeekEvents = newsEvents.filter(e => {
                 const d = e.date;
-                return d >= nextMondayStr && d <= new Date(new Date(nextMondayStr).getTime() + 6*86400000).toISOString().slice(0,10);
+                return d >= nextMondayStr && d <= nextWeekEndStr;
             }).sort((a, b) => a.date.localeCompare(b.date));
 
             // TODAY
@@ -926,7 +950,7 @@
                     tEl.innerHTML = todayEvents.map(e => {
                         const flag = getFlag(e.currency);
                         let cls = 'news-yellow';
-                        if (orangeTriggers.includes(e.event)) cls = 'news-orange';
+                        if (eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
                         if (redKeywords.some(k => e.event.toUpperCase().includes(k))) cls = 'news-red';
                         return `<div class="${cls} text-sm">• ${flag} ${e.event} <span class="text-[#888] text-xs">(${e.time})</span></div>`;
                     }).join('');

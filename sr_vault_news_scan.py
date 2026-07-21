@@ -1,441 +1,755 @@
 #!/usr/bin/env python3
 """
-SR VAULT — Economic Calendar Manager + News Scan (Grok Global Search + Auto FF)
+SR VAULT — Locked whitelist news engine (schedule + forecast/previous/actual)
 
-This is the "backend calendar system" for the trading panel.
+Phase 1–3:
+  1. Frozen whitelist — only events we trade on (GBPJPY / funded rules)
+  2. Event model includes forecast / previous / actual + vs consensus
+  3. Live actuals from TradingView economic calendar (free, no key);
+     schedule + forecast also filled from the same feed when available.
+     Forex Factory this-week JSON is a secondary fallback (forecast/previous).
 
-ARCHITECTURE (bomb-proof, matches your request):
-- Master long-term calendar data lives in RESEARCHED_EVENTS below (curated 6-month list of only
-  the events you care about: BOE rate decisions, GBP inflation/CPI, NFP, US CPI, GDP, MPC etc.).
-  These are stable and published months ahead on official sites.
-- Near-term accuracy comes from live public Forex Factory this-week JSON (free, no key, reliable).
-- In --auto mode the script MERGES both, applies your strict whitelist, dedups, and writes the
-  JSON the panel loads.
-- Update the "backend" (the RESEARCHED list) every 2 weeks or when new schedules drop by telling
-  Grok: "research and update the economic calendar in sr_vault_news_scan.py for the next 6 months".
-- GitHub Action runs this hourly (or on demand) and commits the fresh panel JSON.
-- The website (index.html) + its JS buckets the data dynamically into TODAY / THIS WEEK / NEXT WEEK
-  every time it loads/refreshes. No manual weekly population of the site needed.
+Output: sr_vault_assets/news/myfxbook_news.json  (panel source of truth)
 
-RECOMMENDED UPDATE PROCESS:
-1. Every 2 weeks (or as needed): Ask Grok to research official calendars (BoE, ONS, BLS, Fed...) and
-   replace the RESEARCHED_EVENTS list with accurate dates for the next 6 months.
-2. Run locally: python sr_vault_news_scan.py --auto
-3. Or trigger the GitHub Action "Update News + ZeroHedge Feed" with workflow_dispatch (it calls --auto).
-4. The Action commits sr_vault_assets/news/myfxbook_news.json so the live site (and local) sees it.
-5. Panel automatically shows the correct events in the 3 tables (including the important BOE + GBP inflation ones).
-
-The whitelist is intentionally strict — only events you have explicitly said matter for your funded GBPJPY rules.
-Everything else is filtered as irrelevant.
-
-Cache written: sr_vault_assets/news/myfxbook_news.json (the file the trading panel consumes).
+Run:
+  python sr_vault_news_scan.py --auto
 """
 
+from __future__ import annotations
+
 import json
-from datetime import datetime, timedelta, timezone
 import os
-import requests
+import re
 import time
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
 
-# =============================================================================
-# CONFIG — same as the trading panel
-# =============================================================================
-# Path is relative to this script so it works whether you run from the srvault folder,
-# from GitHub Actions (cwd = repo root), or double-click the script. No hard-coded usernames.
+import requests
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-NEWS_CACHE_PATH = os.path.join(SCRIPT_DIR, "sr_vault_assets", "news", "myfxbook_news.json")
-
-os.makedirs(os.path.dirname(NEWS_CACHE_PATH), exist_ok=True)
+NEWS_DIR = os.path.join(SCRIPT_DIR, "sr_vault_assets", "news")
+NEWS_CACHE_PATH = os.path.join(NEWS_DIR, "myfxbook_news.json")
+FULL_CALENDAR_PATH = os.path.join(NEWS_DIR, "economic_calendar.json")
+os.makedirs(NEWS_DIR, exist_ok=True)
 
 # =============================================================================
-# STRICT USER WHITELIST — ONLY THESE EVENTS WILL EVER APPEAR IN THE PANEL
+# PHASE 1 — FROZEN WHITELIST (only these ever appear on SR Vault)
 # =============================================================================
-# These are the *only* news events you have mentioned as relevant for your GBPJPY trading.
-# Everything else (even if high impact or in USD/GBP/JPY) is filtered as completely irrelevant.
-#
-# To update: 
-#   1. Ask me "list the news events I want" or paste the exact titles from Forex Factory.
-#   2. I will update this list.
-#   3. Re-run the script or let the GitHub Action do it.
-#
-# Event titles should be as close as possible to the official Forex Factory title (case-insensitive match).
+# day_color drives the panel bar: yellow | orange | red (red is mostly calendar EOM/EOQ)
+# aliases are matched case-insensitively against provider titles.
+# currency must match event currency (USD/GBP).
 
-STRICT_WHITELIST_EVENTS = [
-    # US CPI variants (high impact for risk / USD)
-    "CPI (MoM)",
-    "Core CPI (MoM)",
-    "CPI (YoY)",
-    "Core CPI (YoY)",
-    "CPI",
-    # GBP GDP and inflation (key for GBPJPY)
-    "GDP (MoM)",
-    "GDP q/q",
-    "INFLATION",
-    "INFLATION RATE",
-    "RPI",
-    # NFP and BOE - special volatile days with custom red bar treatment (very important for funded traders)
-    "NFP",
-    "Non-Farm Payrolls",
-    "BOE",
-    "Bank of England",
-    "MPC",
-    "Rate Decision",
-    "INTEREST RATE",
-    "BANK RATE",
-    "BOE RATE",
-    # Add any others you have specifically mentioned below (exact titles only)
-    # "FOMC Statement",
-    # "Non-Farm Payrolls",
+WHITELIST: list[dict[str, Any]] = [
+    # --- ORANGE: NFP ---
+    {
+        "id": "us_nfp",
+        "display": "Non-Farm Payrolls (NFP)",
+        "currency": "USD",
+        "day_color": "orange",
+        "aliases": [
+            "non farm payrolls",
+            "non-farm payrolls",
+            "nonfarm payrolls",
+            "nfp",
+            "us nonfarm payrolls",
+        ],
+    },
+    # --- ORANGE: BOE rate ---
+    {
+        "id": "boe_rate",
+        "display": "BOE Interest Rate Decision",
+        "currency": "GBP",
+        "day_color": "orange",
+        "aliases": [
+            "boe interest rate decision",
+            "bank of england interest rate decision",
+            "bank of england mpc rate decision",
+            "boe rate decision",
+            "mpc rate decision",
+        ],
+        # Exclude vote tallies / minutes noise
+        "exclude_if": [
+            "vote",
+            "minutes",
+            "report",
+            "consumer credit",
+            "speech",
+            "speak",
+        ],
+    },
+    # --- YELLOW: US CPI ---
+    {
+        "id": "us_cpi_yoy",
+        "display": "CPI y/y",
+        "currency": "USD",
+        "day_color": "yellow",
+        "aliases": [
+            "inflation rate yoy",
+            "cpi y/y",
+            "cpi (yoy)",
+            "cpi yoy",
+            "consumer price index yoy",
+        ],
+        "exclude_if": ["core", "median", "trimmed", "common", "national"],
+    },
+    {
+        "id": "us_core_cpi_yoy",
+        "display": "Core CPI y/y",
+        "currency": "USD",
+        "day_color": "yellow",
+        "aliases": [
+            "core inflation rate yoy",
+            "core cpi y/y",
+            "core cpi (yoy)",
+            "core cpi yoy",
+        ],
+    },
+    {
+        "id": "us_cpi_mom",
+        "display": "CPI m/m",
+        "currency": "USD",
+        "day_color": "yellow",
+        "aliases": [
+            "inflation rate mom",
+            "cpi m/m",
+            "cpi (mom)",
+            "cpi mom",
+        ],
+        "exclude_if": ["core", "median", "trimmed", "common"],
+    },
+    {
+        "id": "us_core_cpi_mom",
+        "display": "Core CPI m/m",
+        "currency": "USD",
+        "day_color": "yellow",
+        "aliases": [
+            "core inflation rate mom",
+            "core cpi m/m",
+            "core cpi (mom)",
+            "core cpi mom",
+        ],
+    },
+    # --- YELLOW: UK inflation ---
+    {
+        "id": "uk_inflation_yoy",
+        "display": "UK Inflation Rate",
+        "currency": "GBP",
+        "day_color": "yellow",
+        "aliases": [
+            "inflation rate yoy",
+            "uk inflation rate",
+            "cpi y/y",
+            "cpi (yoy)",
+            "cpi yoy",
+        ],
+        "exclude_if": ["core", "rpi", "ppi", "producer"],
+    },
+    {
+        "id": "uk_core_cpi_yoy",
+        "display": "Core CPI y/y",
+        "currency": "GBP",
+        "day_color": "yellow",
+        "aliases": [
+            "core inflation rate yoy",
+            "core cpi y/y",
+            "core cpi (yoy)",
+            "core cpi yoy",
+        ],
+    },
+    # --- YELLOW: FOMC rate (panel colour rules) ---
+    {
+        "id": "fed_rate",
+        "display": "FOMC Interest Rate Decision",
+        "currency": "USD",
+        "day_color": "yellow",
+        "aliases": [
+            "fed interest rate decision",
+            "fomc interest rate decision",
+            "federal funds rate",
+            "fed rate decision",
+        ],
+        "exclude_if": ["minutes", "speech", "speak", "press conference"],
+    },
 ]
 
-RELEVANT_CURRENCIES = {"USD", "GBP", "JPY", "JAPAN", "UK", "UNITED KINGDOM"}
+# Official long-range schedule (authoritative dates from BLS / ONS / BOE / Fed calendars).
+# Live feed overwrites forecast/previous/actual and can refine times; it must not invent
+# non-whitelist event types.
+AUTHORITATIVE_SCHEDULE: list[dict[str, Any]] = [
+    # Past (kept briefly so "recent" results can still show)
+    {
+        "date": "2026-07-14",
+        "time_utc": "12:30",
+        "whitelist_id": "us_cpi_yoy",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-07-14",
+        "time_utc": "12:30",
+        "whitelist_id": "us_core_cpi_yoy",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-07-14",
+        "time_utc": "12:30",
+        "whitelist_id": "us_cpi_mom",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-07-14",
+        "time_utc": "12:30",
+        "whitelist_id": "us_core_cpi_mom",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    # Upcoming verified
+    {
+        "date": "2026-07-22",
+        "time_utc": "06:00",
+        "whitelist_id": "uk_inflation_yoy",
+        "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    },
+    {
+        "date": "2026-07-22",
+        "time_utc": "06:00",
+        "whitelist_id": "uk_core_cpi_yoy",
+        "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    },
+    {
+        "date": "2026-07-29",
+        "time_utc": "18:00",
+        "whitelist_id": "fed_rate",
+        "source_url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+    },
+    {
+        "date": "2026-07-30",
+        "time_utc": "11:00",
+        "whitelist_id": "boe_rate",
+        "source_url": "https://www.bankofengland.co.uk/monetary-policy/upcoming-mpc-dates",
+    },
+    {
+        "date": "2026-08-07",
+        "time_utc": "12:30",
+        "whitelist_id": "us_nfp",
+        "source_url": "https://www.bls.gov/schedule/news_release/empsit.htm",
+    },
+    {
+        "date": "2026-08-12",
+        "time_utc": "12:30",
+        "whitelist_id": "us_cpi_yoy",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-08-12",
+        "time_utc": "12:30",
+        "whitelist_id": "us_core_cpi_yoy",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-08-12",
+        "time_utc": "12:30",
+        "whitelist_id": "us_cpi_mom",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-08-12",
+        "time_utc": "12:30",
+        "whitelist_id": "us_core_cpi_mom",
+        "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+    },
+    {
+        "date": "2026-08-19",
+        "time_utc": "06:00",
+        "whitelist_id": "uk_inflation_yoy",
+        "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    },
+    {
+        "date": "2026-08-19",
+        "time_utc": "06:00",
+        "whitelist_id": "uk_core_cpi_yoy",
+        "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    },
+]
 
-def is_gbpjpy_relevant(event: str, currency: str) -> bool:
-    if not event or not currency:
-        return False
-    if currency.upper() not in RELEVANT_CURRENCIES:
-        return False
-    text = event.upper()
-    # Strict whitelist only — no broad keywords anymore
-    return any(wh.upper() in text for wh in STRICT_WHITELIST_EVENTS)
+WL_BY_ID = {w["id"]: w for w in WHITELIST}
+
+
+def _norm(s: str) -> str:
+    s = (s or "").lower()
+    s = s.replace("–", "-").replace("—", "-")
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def match_whitelist(title: str, currency: str) -> Optional[dict[str, Any]]:
+    """Return the whitelist entry if title+currency match, else None."""
+    t = _norm(title)
+    cur = (currency or "").upper()
+    if cur in ("GB", "UK", "UNITED KINGDOM"):
+        cur = "GBP"
+    if cur in ("US", "USA", "UNITED STATES"):
+        cur = "USD"
+
+    candidates = []
+    for w in WHITELIST:
+        if w["currency"] != cur:
+            continue
+        excludes = [_norm(x) for x in w.get("exclude_if", [])]
+        if any(x and x in t for x in excludes):
+            continue
+        # Core events must say core; non-core must not
+        wants_core = "core" in w["id"] or any("core" in _norm(a) for a in w["aliases"])
+        has_core = "core" in t
+        if wants_core and not has_core:
+            continue
+        if (not wants_core) and has_core:
+            continue
+        for alias in w["aliases"]:
+            a = _norm(alias)
+            # Exact or alias contained in title — never title-contained-in-alias
+            # (that made "Inflation Rate YoY" match "Core Inflation Rate YoY")
+            if a == t or a in t:
+                candidates.append((len(a), w))
+                break
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: -x[0])
+    return candidates[0][1]
+
+
+def fmt_num(val: Any, unit: str = "") -> str:
+    if val is None or val == "":
+        return ""
+    if isinstance(val, (int, float)):
+        # keep meaningful decimals
+        if abs(val) >= 100:
+            s = f"{val:.0f}" if float(val).is_integer() else f"{val:.1f}"
+        else:
+            s = f"{val:g}"
+        if unit == "%":
+            return f"{s}%"
+        if unit and unit not in s:
+            return f"{s}{unit}" if unit in ("K", "M", "B") else f"{s} {unit}".strip()
+        return s
+    return str(val).strip()
+
+
+def parse_numeric(val: Any) -> Optional[float]:
+    if val is None or val == "":
+        return None
+    if isinstance(val, (int, float)):
+        return float(val)
+    s = str(val).strip().replace(",", "")
+    mult = 1.0
+    if s.endswith("%"):
+        s = s[:-1]
+    if s.upper().endswith("K"):
+        mult = 1_000
+        s = s[:-1]
+    elif s.upper().endswith("M"):
+        mult = 1_000_000
+        s = s[:-1]
+    elif s.upper().endswith("B"):
+        mult = 1_000_000_000
+        s = s[:-1]
+    try:
+        return float(s) * mult
+    except ValueError:
+        return None
+
+
+def vs_consensus(actual: Any, forecast: Any) -> dict[str, Any]:
+    """Compute beat/miss/inline vs forecast."""
+    a = parse_numeric(actual)
+    f = parse_numeric(forecast)
+    if a is None or f is None:
+        return {
+            "delta": None,
+            "delta_display": "",
+            "result": "",  # beat | miss | inline | ""
+        }
+    delta = a - f
+    # tolerance for near-equal percentages
+    if abs(delta) < 1e-9 or (abs(f) > 0 and abs(delta / max(abs(f), 1e-9)) < 1e-6):
+        return {"delta": 0.0, "delta_display": "in line", "result": "inline"}
+    # Display delta in same style as inputs when possible
+    if isinstance(actual, str) and actual.endswith("%") or isinstance(forecast, str) and str(forecast).endswith("%"):
+        d_disp = f"{delta:+.2f}%".replace("+", "+")
+    elif abs(delta) >= 1000:
+        d_disp = f"{delta:+,.0f}"
+    else:
+        d_disp = f"{delta:+g}"
+    return {
+        "delta": delta,
+        "delta_display": d_disp,
+        "result": "beat" if delta > 0 else "miss",
+    }
+
+
+def empty_event(wl: dict, date: str, time_utc: str, **extra) -> dict[str, Any]:
+    return {
+        "id": f"{wl['id']}_{date}",
+        "whitelist_id": wl["id"],
+        "date": date,
+        "time_utc": time_utc,
+        "event": wl["display"],
+        "currency": wl["currency"],
+        "impact": "HIGH",
+        "day_color": wl["day_color"],
+        "forecast": "",
+        "previous": "",
+        "actual": "",
+        "delta": None,
+        "delta_display": "",
+        "result": "",
+        "unit": "",
+        "verified": True if extra.get("verified") else False,
+        "source": extra.get("source", "SR Vault whitelist"),
+        "source_url": extra.get("source_url", ""),
+    }
+
+
+def event_key(e: dict) -> tuple:
+    return (e.get("date", ""), e.get("whitelist_id") or e.get("event", "").upper(), e.get("currency", ""))
+
+
+# =============================================================================
+# LIVE SOURCES
+# =============================================================================
+
+def fetch_tradingview(days_back: int = 5, days_forward: int = 50) -> list[dict]:
+    """TradingView economic calendar — includes actual/forecast/previous when released."""
+    now = datetime.now(timezone.utc)
+    frm = (now - timedelta(days=days_back)).strftime("%Y-%m-%dT00:00:00.000Z")
+    to = (now + timedelta(days=days_forward)).strftime("%Y-%m-%dT23:59:59.000Z")
+    url = (
+        "https://economic-calendar.tradingview.com/events"
+        f"?from={frm}&to={to}&countries=US,GB&minImportance=0"
+    )
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Origin": "https://www.tradingview.com",
+        "Referer": "https://www.tradingview.com/",
+        "Accept": "application/json",
+    }
+    print(f"  Fetching TradingView calendar {frm[:10]} → {to[:10]} ...")
+    try:
+        resp = requests.get(url, headers=headers, timeout=25)
+        if resp.status_code != 200:
+            print(f"  TradingView HTTP {resp.status_code}")
+            return []
+        data = resp.json()
+        raw = data.get("result") or []
+        print(f"  TradingView returned {len(raw)} raw events")
+        out = []
+        for item in raw:
+            title = (item.get("title") or item.get("indicator") or "").strip()
+            country = (item.get("country") or item.get("currency") or "").strip()
+            # map country codes
+            if country in ("GB", "UK"):
+                currency = "GBP"
+            elif country in ("US",):
+                currency = "USD"
+            else:
+                currency = country_to_currency(country)
+
+            wl = match_whitelist(title, currency)
+            if not wl:
+                continue
+
+            date_raw = item.get("date") or ""
+            try:
+                dt = datetime.fromisoformat(date_raw.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                utc = dt.astimezone(timezone.utc)
+            except Exception:
+                continue
+
+            unit = item.get("unit") or ""
+            actual = fmt_num(item.get("actual"), unit if item.get("actual") is not None else "")
+            forecast = fmt_num(item.get("forecast"), unit if item.get("forecast") is not None else "")
+            previous = fmt_num(item.get("previous"), unit if item.get("previous") is not None else "")
+            # If raw already had % in unit, fmt_num handled it; if values are strings keep them
+            if item.get("actual") is not None and not actual:
+                actual = str(item.get("actual"))
+            if item.get("forecast") is not None and not forecast:
+                forecast = str(item.get("forecast"))
+            if item.get("previous") is not None and not previous:
+                previous = str(item.get("previous"))
+
+            vs = vs_consensus(item.get("actual"), item.get("forecast"))
+            if not vs["result"] and actual and forecast:
+                vs = vs_consensus(actual, forecast)
+
+            ev = empty_event(
+                wl,
+                utc.strftime("%Y-%m-%d"),
+                utc.strftime("%H:%M"),
+                source="TradingView economic calendar",
+                source_url=item.get("source_url") or "",
+                verified=True,
+            )
+            ev["actual"] = actual
+            ev["forecast"] = forecast
+            ev["previous"] = previous
+            ev["unit"] = unit or ""
+            ev["delta"] = vs["delta"]
+            ev["delta_display"] = vs["delta_display"]
+            ev["result"] = vs["result"]
+            ev["provider_title"] = title
+            out.append(ev)
+        print(f"  Whitelist-matched from TradingView: {len(out)}")
+        return out
+    except Exception as e:
+        print(f"  TradingView fetch error: {e}")
+        return []
+
 
 def country_to_currency(country: str) -> str:
     c = (country or "").upper()
     if "UNITED STATES" in c or c in ("US", "USA"):
         return "USD"
-    if "UNITED KINGDOM" in c or "UK" in c or "BRITAIN" in c:
+    if "UNITED KINGDOM" in c or c in ("UK", "GB", "GBP"):
         return "GBP"
-    if "JAPAN" in c:
+    if "JAPAN" in c or c in ("JP", "JPY"):
         return "JPY"
-    if "EURO" in c or "GERMANY" in c or "EUROZONE" in c:
-        return "EUR"
-    return country  # keep original for filtering
+    return c
 
-def fetch_forex_factory_this_week(max_retries: int = 2) -> list:
-    """
-    Fetch the public no-login Forex Factory this-week calendar JSON.
-    This is currently one of the best free, structured sources for forex economic events.
-    Returns list of events in our internal format (or [] on failure).
-    """
+
+def fetch_forex_factory() -> list[dict]:
+    """Secondary source — schedule + forecast/previous (no actual in public feed)."""
     url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         "Accept": "application/json",
     }
-
-    for attempt in range(max_retries):
+    for attempt in range(2):
         try:
-            print(f"  Fetching Forex Factory public calendar (attempt {attempt+1})...")
+            print(f"  Fetching Forex Factory (attempt {attempt + 1})...")
             resp = requests.get(url, headers=headers, timeout=20)
-            if resp.status_code == 200:
-                raw = resp.json()
-                events = []
-                for item in raw:
-                    if not isinstance(item, dict):
-                        continue
-                    title = item.get("title", "").strip()
-                    country = item.get("country", "").strip()
-                    date_str = item.get("date", "")
-                    impact_raw = (item.get("impact") or "").strip().lower()
-
-                    if not title or not date_str:
-                        continue
-
-                    # Parse the ISO date with offset (e.g. 2026-06-10T12:30:00-04:00)
-                    try:
-                        dt = datetime.fromisoformat(date_str)
-                    except Exception:
-                        continue
-
-                    # Convert to UTC for consistent time_utc
+            if resp.status_code != 200:
+                print(f"  FF HTTP {resp.status_code}")
+                time.sleep(1.5)
+                continue
+            raw = resp.json()
+            out = []
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                title = (item.get("title") or "").strip()
+                country = (item.get("country") or "").strip()
+                currency = country_to_currency(country)
+                # FF uses currency codes as country field (USD/GBP)
+                if country in ("USD", "GBP", "JPY"):
+                    currency = country
+                wl = match_whitelist(title, currency)
+                if not wl:
+                    continue
+                date_str = item.get("date") or ""
+                try:
+                    dt = datetime.fromisoformat(date_str)
                     if dt.tzinfo is not None:
-                        utc_dt = dt.astimezone(timezone.utc)
+                        utc = dt.astimezone(timezone.utc)
                     else:
-                        utc_dt = dt  # assume already utc if no tz (fallback)
-
-                    date = utc_dt.strftime("%Y-%m-%d")
-                    time_utc = utc_dt.strftime("%H:%M")
-
-                    imp = "HIGH" if "high" in impact_raw else ("MEDIUM" if "medium" in impact_raw else "LOW")
-                    currency = country_to_currency(country)
-
-                    events.append({
-                        "date": date,
-                        "time_utc": time_utc,
-                        "event": title,
-                        "currency": currency,
-                        "impact": imp,
-                        "source": "Forex Factory"
-                    })
-                print(f"  Retrieved {len(events)} raw events from Forex Factory.")
-                return events
-            else:
-                print(f"  HTTP {resp.status_code}")
+                        utc = dt.replace(tzinfo=timezone.utc)
+                except Exception:
+                    continue
+                forecast = (item.get("forecast") or "").strip()
+                previous = (item.get("previous") or "").strip()
+                actual = (item.get("actual") or "").strip()  # usually empty on this feed
+                vs = vs_consensus(actual, forecast) if actual and forecast else {
+                    "delta": None, "delta_display": "", "result": ""
+                }
+                ev = empty_event(
+                    wl,
+                    utc.strftime("%Y-%m-%d"),
+                    utc.strftime("%H:%M"),
+                    source="Forex Factory",
+                    verified=True,
+                )
+                ev["forecast"] = forecast
+                ev["previous"] = previous
+                ev["actual"] = actual
+                ev["delta"] = vs["delta"]
+                ev["delta_display"] = vs["delta_display"]
+                ev["result"] = vs["result"]
+                ev["provider_title"] = title
+                out.append(ev)
+            print(f"  Whitelist-matched from FF: {len(out)}")
+            return out
         except Exception as e:
-            print(f"  Fetch error: {e}")
-        time.sleep(1.5 * (attempt + 1))  # be nice to rate limits
-
-    print("  Forex Factory fetch failed after retries.")
+            print(f"  FF error: {e}")
+            time.sleep(1.5)
     return []
 
-def format_date_nice(date_str: str) -> str:
-    """Thursday 11th June 2026 style (exactly as the panel uses)."""
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    weekday = dt.strftime("%A")
-    day = dt.day
-    if 10 <= day % 100 <= 20:
-        suffix = "th"
-    else:
-        suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
-    month = dt.strftime("%B")
-    year = dt.year
-    return f"{weekday} {day}{suffix} {month} {year}"
 
-def get_week_start(d: datetime) -> datetime:
-    return d - timedelta(days=d.weekday())
+def load_previous_cache() -> list[dict]:
+    if not os.path.exists(NEWS_CACHE_PATH):
+        return []
+    try:
+        with open(NEWS_CACHE_PATH) as f:
+            data = json.load(f)
+        return data.get("events") or []
+    except Exception:
+        return []
 
-# =============================================================================
-# === GROK-RESEARCHED EVENTS ===
-# This list is populated by Grok when you ask for a weekly news scan.
-# Format must be exactly:
-#   {"date": "YYYY-MM-DD", "time_utc": "HH:MM", "event": "Exact Event Title", "currency": "USD", "impact": "HIGH"}
-#
-# Only include events that match the filter above and are high-impact.
-# Times should be in UTC (most calendars show ET or local — convert if needed: ET is UTC-4 or UTC-5).
-#
-# Grok will replace the list below during each scan.
-# =============================================================================
-RESEARCHED_EVENTS = [
-    # =============================================================================
-    # BACKEND ECONOMIC CALENDAR (the "long-term curated calendar" for next 6+ months)
-    # =============================================================================
-    # This list + the live FF "this week" feed (merged in --auto mode) IS your bomb-proof
-    # backend calendar system.
-    #
-    # - Near-term (next 7-14 days): Always fresh from public Forex Factory thisweek.json (free, reliable, no key).
-    # - Medium/long-term (up to 6 months+): Curated here. These events (BOE, GBP inflation/CPI, NFP, US CPI, FOMC, etc.)
-    #   are published on official calendars (BoE, ONS, BLS, Fed) many months in advance and change very little.
-    #
-    # Update frequency (as you requested):
-    #   • Every 2 weeks (or when major schedule updates drop): Ask "research and update the economic calendar
-    #     in sr_vault_news_scan.py for the next 6 months with accurate BOE MPC/rate decisions, UK CPI/inflation
-    #     dates, NFP, US CPI, FOMC, any YEN events etc."
-    #   • Grok will search official sources and replace the list below with precise YYYY-MM-DD / HH:MM UTC.
-    #   • Then run: python sr_vault_news_scan.py --auto   (or let the GitHub Action do it).
-    #   • The Action commits the resulting myfxbook_news.json so the panel always has correct THIS WEEK / NEXT WEEK.
-    #
-    # The panel JS buckets whatever is in the JSON dynamically into TODAY / THIS WEEK / NEXT WEEK based on today's date.
-    # No need to change the website weekly — just keep the data fresh.
-    #
-    # Only high-impact events relevant to your GBPJPY / funded trading rules are included (strict whitelist).
-    # =============================================================================
 
-    # Current / near term examples (will be overridden/supplemented by live FF in --auto)
-    {"date": "2026-06-10", "time_utc": "12:30", "event": "CPI (MoM)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-06-10", "time_utc": "12:30", "event": "Core CPI (MoM)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-06-10", "time_utc": "12:30", "event": "CPI (YoY)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-06-12", "time_utc": "06:00", "event": "GDP (MoM)", "currency": "GBP", "impact": "HIGH"},
-
-    # === NEXT WEEK (the ones you reported were missing) ===
-    # BOE interest rate decision / MPC (very important for GBPJPY volatility and your red/yellow rules)
-    {"date": "2026-06-18", "time_utc": "12:00", "event": "BOE Interest Rate Decision", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-06-18", "time_utc": "12:00", "event": "Bank of England MPC Rate Decision", "currency": "GBP", "impact": "HIGH"},
-    # GBP inflation / CPI (the "GBP inflation rate" you mentioned)
-    {"date": "2026-06-19", "time_utc": "07:00", "event": "CPI y/y", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-06-19", "time_utc": "07:00", "event": "UK Inflation Rate", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-06-19", "time_utc": "07:00", "event": "Core CPI y/y", "currency": "GBP", "impact": "HIGH"},
-
-    # === Further out (examples spanning next ~3 months; expand to 6 months when you ask for research) ===
-    # Recurring pattern: UK CPI around mid-month, BOE every ~6-8 weeks, NFP first Friday, US CPI mid-month, etc.
-    # These are illustrative — replace with exact official dates via "research the next 6 months calendar".
-    {"date": "2026-06-25", "time_utc": "12:30", "event": "Core CPI (MoM)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-07-03", "time_utc": "12:30", "event": "Non-Farm Payrolls", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-07-03", "time_utc": "12:30", "event": "NFP", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-07-10", "time_utc": "12:30", "event": "CPI (MoM)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-07-16", "time_utc": "12:00", "event": "BOE Interest Rate Decision", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-07-17", "time_utc": "07:00", "event": "CPI y/y", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-07-17", "time_utc": "07:00", "event": "UK Inflation Rate", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-08-01", "time_utc": "12:30", "event": "Non-Farm Payrolls", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-08-07", "time_utc": "12:30", "event": "CPI (MoM)", "currency": "USD", "impact": "HIGH"},
-    {"date": "2026-08-13", "time_utc": "12:00", "event": "BOE Interest Rate Decision", "currency": "GBP", "impact": "HIGH"},
-    {"date": "2026-08-14", "time_utc": "07:00", "event": "CPI y/y", "currency": "GBP", "impact": "HIGH"},
-    # Add more as you research (FOMC, additional MPC dates, YEN events if relevant to your GBPJPY, etc.)
-    # Example FOMC for context (even if not always traded):
-    # {"date": "2026-07-29", "time_utc": "18:00", "event": "FOMC Statement", "currency": "USD", "impact": "HIGH"},
-]
-
-# =============================================================================
-# CORE LOGIC
-# =============================================================================
-
-def get_relevant_events_for_weeks(events):
-    """Filter + attach week info for display."""
-    today = datetime.now().date()
-    today_str = today.strftime("%Y-%m-%d")
-
-    this_monday = get_week_start(datetime.now())
-    this_monday_str = this_monday.strftime("%Y-%m-%d")
-    this_week_end_str = (this_monday + timedelta(days=6)).strftime("%Y-%m-%d")
-
-    next_monday = this_monday + timedelta(days=7)
-    next_monday_str = next_monday.strftime("%Y-%m-%d")
-    next_week_end_str = (next_monday + timedelta(days=6)).strftime("%Y-%m-%d")
-
-    filtered = []
-    for e in events:
-        if not is_gbpjpy_relevant(e.get("event", ""), e.get("currency", "")):
+def schedule_events() -> list[dict]:
+    out = []
+    for row in AUTHORITATIVE_SCHEDULE:
+        wl = WL_BY_ID.get(row["whitelist_id"])
+        if not wl:
             continue
-        filtered.append(e)
+        ev = empty_event(
+            wl,
+            row["date"],
+            row["time_utc"],
+            source="Official schedule (BLS/ONS/BOE/Fed)",
+            source_url=row.get("source_url", ""),
+            verified=True,
+        )
+        out.append(ev)
+    return out
 
-    # Categorize
-    today_events = [e for e in filtered if e["date"] == today_str]
-    this_week_events = [e for e in filtered 
-                        if this_monday_str <= e["date"] <= this_week_end_str and e["date"] != today_str]
-    next_week_events = [e for e in filtered 
-                        if next_monday_str <= e["date"] <= next_week_end_str]
 
-    return {
-        "today_str": today_str,
-        "this_monday_str": this_monday_str,
-        "next_monday_str": next_monday_str,
-        "today_events": sorted(today_events, key=lambda x: x["time_utc"]),
-        "this_week_events": sorted(this_week_events, key=lambda x: (x["date"], x["time_utc"])),
-        "next_week_events": sorted(next_week_events, key=lambda x: (x["date"], x["time_utc"])),
-    }
+def merge_events(*lists: list[dict]) -> list[dict]:
+    """
+    Merge by (date, whitelist_id, currency).
+    Later lists overlay earlier ones. Non-empty actual/forecast/previous from a later
+    source always win (so live TradingView overwrites stale cache).
+    """
+    merged: dict[tuple, dict] = {}
+    for lst in lists:
+        for e in lst:
+            # ensure whitelist_id
+            if not e.get("whitelist_id"):
+                wl = match_whitelist(e.get("event", ""), e.get("currency", ""))
+                if not wl:
+                    continue
+                e = {**e, "whitelist_id": wl["id"], "event": wl["display"], "day_color": wl["day_color"]}
+            key = event_key(e)
+            if key not in merged:
+                merged[key] = dict(e)
+                continue
+            base = merged[key]
+            for field in ("actual", "forecast", "previous", "time_utc", "source_url", "unit", "provider_title"):
+                val = e.get(field)
+                if val not in (None, ""):
+                    # later non-empty always wins for data fields
+                    base[field] = val
+            if e.get("source") and (e.get("actual") or e.get("forecast") or e.get("previous") or e.get("source", "").startswith("TradingView")):
+                base["source"] = e["source"]
+            if e.get("verified"):
+                base["verified"] = True
+            if e.get("day_color"):
+                base["day_color"] = e["day_color"]
+            if e.get("event"):
+                base["event"] = e["event"]
+            # recompute vs consensus after overlay
+            vs = vs_consensus(base.get("actual"), base.get("forecast"))
+            base["delta"] = vs["delta"]
+            base["delta_display"] = vs["delta_display"]
+            base["result"] = vs["result"]
+            merged[key] = base
 
-def save_to_cache(events, source="Grok Weekly Scan"):
+    events = list(merged.values())
+    # Drop very old (> 21 days) to keep panel clean
+    cutoff = (datetime.now().date() - timedelta(days=21)).isoformat()
+    events = [e for e in events if e.get("date", "") >= cutoff]
+    events.sort(key=lambda x: (x.get("date", ""), x.get("time_utc", ""), x.get("event", "")))
+    return events
+
+
+def save_cache(events: list[dict], source: str) -> dict:
+    whitelist_summary = [
+        {
+            "id": w["id"],
+            "display": w["display"],
+            "currency": w["currency"],
+            "day_color": w["day_color"],
+        }
+        for w in WHITELIST
+    ]
     cache = {
         "last_fetched": datetime.now().isoformat(),
         "source": source,
-        "events": events
+        "schema_version": 2,
+        "whitelist": whitelist_summary,
+        "events": events,
     }
     with open(NEWS_CACHE_PATH, "w") as f:
         json.dump(cache, f, indent=2)
+        f.write("\n")
+    with open(FULL_CALENDAR_PATH, "w") as f:
+        json.dump(cache, f, indent=2)
+        f.write("\n")
     return cache
 
-def print_roadmap_preview(weeks_info):
-    print("\n" + "=" * 70)
-    print("SR VAULT WEEKLY NEWS ROADMAP PREVIEW (what the panel will show)")
-    print("=" * 70)
 
-    print(f"\nLast updated: {datetime.now().strftime('%A %d %B %Y %H:%M')} (local)")
+def print_preview(events: list[dict]) -> None:
+    today = datetime.now().date().isoformat()
+    print("\n" + "=" * 72)
+    print("SR VAULT NEWS PREVIEW (whitelist only)")
+    print("=" * 72)
+    print(f"Today: {today}  |  events: {len(events)}")
+    for e in events:
+        mark = ""
+        if e.get("actual"):
+            mark = f"  ACTUAL={e['actual']}  FC={e.get('forecast') or '—'}  → {e.get('delta_display') or e.get('result') or ''}"
+        elif e.get("forecast"):
+            mark = f"  FC={e['forecast']}  PREV={e.get('previous') or '—'}"
+        print(
+            f"  {e['date']} {e.get('time_utc','')}  {e['currency']:3}  "
+            f"[{e.get('day_color','?'):6}]  {e['event']}{mark}"
+        )
+    print("=" * 72)
+    print("Wrote:", NEWS_CACHE_PATH)
+    print()
 
-    # TODAY
-    print(f"\n**TODAY** ({weeks_info['today_str']})")
-    if weeks_info["today_events"]:
-        for e in weeks_info["today_events"]:
-            print(f"  {e['time_utc']} UTC | {e['currency']:4} | {e['event']}")
-    else:
-        print("  (no matching high-impact events today)")
 
-    # THIS WEEK
-    nice_this = format_date_nice(weeks_info["this_monday_str"])
-    print(f"\n**THIS WEEK** (Week beginning {nice_this})")
-    if weeks_info["this_week_events"]:
-        for e in weeks_info["this_week_events"]:
-            nice_d = format_date_nice(e["date"])
-            print(f"  {nice_d} | {e['time_utc']} UTC | {e['currency']:4} | {e['event']}")
-    else:
-        print("  (no more matching events in the rest of this week)")
-
-    # NEXT WEEK
-    nice_next = format_date_nice(weeks_info["next_monday_str"])
-    print(f"\n**NEXT WEEK** (Week beginning {nice_next})")
-    if weeks_info["next_week_events"]:
-        for e in weeks_info["next_week_events"]:
-            nice_d = format_date_nice(e["date"])
-            print(f"  {nice_d} | {e['time_utc']} UTC | {e['currency']:4} | {e['event']}")
-    else:
-        print("  (no matching events scheduled yet for next week)")
-
-    print("\n" + "=" * 70)
-    print("✅ Cache written to:", NEWS_CACHE_PATH)
-    print("   Open (or refresh) the Daily Trading Panel to see the updated roadmap.")
-    print("   The panel will show 'Last updated via Grok Global Search' using this timestamp.")
-    print("=" * 70 + "\n")
-
-def main():
+def main() -> None:
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--auto', action='store_true',
-                        help='Use the built-in public Forex Factory feed instead of the RESEARCHED_EVENTS list. '
-                             'Perfect for GitHub Actions / scheduled runs where there is no Grok to populate the list.')
+
+    parser = argparse.ArgumentParser(description="SR Vault locked-whitelist news engine")
+    parser.add_argument("--auto", action="store_true", help="Fetch live sources + merge schedule")
     args = parser.parse_args()
 
-    print("=== SR VAULT Weekly News Scan (Grok Global Search) ===\n")
+    print("=== SR VAULT News Engine (whitelist + actuals) ===\n")
+    print(f"Whitelist size: {len(WHITELIST)} event types (frozen)")
 
+    base = schedule_events()
+    prev = load_previous_cache()
+    # only keep previous if they still match whitelist
+    prev_clean = []
+    for e in prev:
+        wl = match_whitelist(e.get("event", ""), e.get("currency", ""))
+        if wl:
+            e = dict(e)
+            e["whitelist_id"] = wl["id"]
+            e["event"] = e.get("event") or wl["display"]
+            e["day_color"] = wl["day_color"]
+            prev_clean.append(e)
+
+    live_tv: list[dict] = []
+    live_ff: list[dict] = []
     if args.auto:
-        print("Running in --auto mode (public Forex Factory feed + filters).")
-        live_events = fetch_forex_factory_this_week()
-        # Hybrid "bomb-proof" calendar: always merge live near-term (this week from FF) 
-        # + the curated long-term RESEARCHED_EVENTS (your 6-month backend calendar data).
-        # This ensures NEXT WEEK and further important events (BOE rate decisions, GBP inflation etc.)
-        # show up even if the public this-week feed hasn't published the full details yet.
-        # Dedup by (date, event) to avoid duplicates.
-        # Post-filter to HIGH impact only (plus any explicitly important low/medium the user has whitelisted
-        # for funded trading rules). This keeps the panel clean — no irrelevant noise.
-        researched = [e for e in RESEARCHED_EVENTS if is_gbpjpy_relevant(e.get("event", ""), e.get("currency", ""))]
-        all_events = live_events + researched
-        seen = set()
-        clean_events = []
-        for e in all_events:
-            key = (e.get("date"), e.get("event", "").upper())
-            if key not in seen:
-                seen.add(key)
-                # Only keep HIGH impact events for the panel tables (or the core ones user cares about)
-                if (e.get("impact") == "HIGH" or any(kw in e.get("event", "").upper() for kw in ["NFP", "BOE", "RATE DECISION", "INFLATION", "GDP (MOM)"])) and e.get("currency", "").upper() in ("USD", "GBP", "JPY", "JAPAN", "UK"):
-                    clean_events.append(e)
-        source = "Auto (Forex Factory near-term + curated backend calendar for 6 months)"
+        live_tv = fetch_tradingview()
+        live_ff = fetch_forex_factory()
+        source = "TradingView (actuals/forecast) + Official schedule + FF fallback"
     else:
-        print("News is populated by Grok performing global web searches.")
-        print("This script applies the researched events to the panel cache.\n")
-        clean_events = [e for e in RESEARCHED_EVENTS if is_gbpjpy_relevant(e.get("event", ""), e.get("currency", ""))]
-        source = "Grok Global Search"
+        source = "Official schedule + previous cache (no live fetch)"
 
-    if not clean_events:
-        print("No relevant events after filtering.")
-        print("\nHow to update:")
-        print("  • Ask Grok: \"do the weekly news scan\" (global search for your events)")
-        print("  • Grok will research and edit the RESEARCHED_EVENTS list at the top of this file.")
-        print("  • Or run with --auto to use the live public Forex Factory calendar.")
-        print("  • Re-run: python sr_vault_news_scan.py   (or with --auto)")
-        print("\nThe panel will load the updated roadmap from the cache (or the JSON you committed to the repo).")
+    # Merge priority: schedule base → previous cache (keeps old actuals) → FF → TV (best live)
+    events = merge_events(base, prev_clean, live_ff, live_tv)
+
+    if not events:
+        print("No events after merge — check network / whitelist.")
         return
 
-    cache = save_to_cache(clean_events, source=source)
+    save_cache(events, source=source)
+    print_preview(events)
+    print("Done. Panel loads this JSON automatically.")
 
-    # Write the explicit "backend economic calendar" (full relevant list for next 6+ months view / auditing).
-    # The trading panel loads the (identical structure) myfxbook_news.json — this is the "weekly populated"
-    # slice the 3 tables (TODAY / THIS WEEK / NEXT WEEK) are built from.
-    # Both are committed by the Action. Update the curated data in RESEARCHED_EVENTS every 2 weeks.
-    full_calendar_path = os.path.join(SCRIPT_DIR, "sr_vault_assets", "news", "economic_calendar.json")
-    with open(full_calendar_path, "w") as f:
-        json.dump({
-            "last_fetched": datetime.now().isoformat(),
-            "source": source + " (full 6-month backend calendar)",
-            "events": clean_events
-        }, f, indent=2)
-    print(f"Also wrote full backend calendar to: {full_calendar_path}")
-
-    weeks_info = get_relevant_events_for_weeks(clean_events)
-    print_roadmap_preview(weeks_info)
-
-    print(f"Total relevant events written: {len(clean_events)}")
-    for e in clean_events[:8]:
-        print(f"  {e['date']} {e['time_utc']}  {e['currency']}  {e['event']}")
-
-    print("\n" + "="*70)
-    if args.auto:
-        print("Scheduled / CI usage: the GitHub Action runs this with --auto on an hourly cron.")
-        print("It commits the fresh JSON so the hosted panel (and your bot) always see current data.")
-    else:
-        print("Weekly routine:")
-        print("  1. Tell Grok \"do the weekly news scan\" (global search)")
-        print("  2. Grok updates RESEARCHED_EVENTS in this file with accurate dates/times")
-        print("  3. Run: python sr_vault_news_scan.py")
-        print("  4. Push the updated JSON (or let the GitHub Action do the heavy lifting).")
-        print("  5. The panel (local or https://...github.io/...) shows the fresh roadmap.")
-    print("="*70 + "\n")
 
 if __name__ == "__main__":
     main()

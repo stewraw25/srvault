@@ -115,6 +115,27 @@
         .news-orange { color: #fb923c; }
         .news-red { color: #f87171; }
 
+        .news-row {
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            background: #0c0c0c;
+        }
+        .result-beat { color: #4ade80; }
+        .result-miss { color: #f87171; }
+        .result-inline { color: #94a3b8; }
+        .result-pending { color: #888; }
+        .verified-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #4ade80;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
         .digital-time {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-weight: 600;
@@ -442,13 +463,17 @@
 
         <!-- RELEVANT NEWS -->
         <div class="mt-4">
-            <div class="flex items-center justify-between mb-2">
-                <div class="font-semibold tracking-wider text-sm">RELEVANT NEWS — GBP / JPY FOCUS</div>
-                <div class="text-[10px] text-[#888]">Data: High-impact GBP/JPY events (public Forex Factory via GitHub Action) • Curated by Grok • <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh</button></div>
+            <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                <div class="font-semibold tracking-wider text-sm">RELEVANT NEWS — WHITELIST ONLY</div>
+                <div class="text-[10px] text-[#888] flex items-center gap-2 flex-wrap">
+                    <span id="news-meta" class="text-[#666]">Locked events only (NFP · BOE · CPI · FOMC) · forecast / previous / actual</span>
+                    <span id="news-last-refresh" class="text-[#4ade80]"></span>
+                    <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh</button>
+                </div>
             </div>
             
             <div class="flex flex-col md:flex-row gap-3">
-                <div class="dark-card rounded-2xl p-4 flex-[1]">
+                <div class="dark-card rounded-2xl p-4 flex-[1.15]">
                     <div class="font-semibold mb-2 text-sm tracking-wider text-[#facc15]">TODAY</div>
                     <div id="news-today" class="space-y-1 text-sm"></div>
                 </div>
@@ -678,18 +703,16 @@
 
         function getDayColor() {
             const today = localYMD();
-            // Check against our news list below
             const todayEvents = newsEvents.filter(e => e.date === today);
-            
-            for (let ev of todayEvents) {
-                if (redKeywords.some(k => ev.event.toUpperCase().includes(k))) return 'red';
-            }
-            for (let ev of todayEvents) {
-                if (eventMatchesList(ev.event, orangeTriggers)) return 'orange';
-            }
-            for (let ev of todayEvents) {
-                if (eventMatchesList(ev.event, yellowTriggers)) return 'yellow';
-            }
+
+            // Prefer explicit day_color from locked whitelist JSON
+            const hasOrange = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'orange' || eventMatchesList(ev.event, orangeTriggers));
+            const hasYellow = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'yellow' || eventMatchesList(ev.event, yellowTriggers));
+            const hasRed = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (ev.event || '').toUpperCase().includes(k)));
+
+            if (hasRed) return 'red';
+            if (hasOrange) return 'orange';
+            if (hasYellow) return 'yellow';
             return 'green';
         }
 
@@ -830,40 +853,107 @@
             }
         }
 
-        // ============ NEWS - Loaded reliably from JSON (updated by GitHub Action + Grok curation) ============
-        // Most reliable for this static site:
-        // - GitHub Action (update-news.yml) runs sr_vault_news_scan.py every hour
-        // - Script fetches from public Forex Factory JSON (reliable, no key)
-        // - Strict whitelist in the Python script (only events you care about for GBPJPY)
-        // - Grok (me) updates the whitelist/curated events when you ask "update the news whitelist"
-        // - Client fetches the JSON here
+        // ============ NEWS — locked whitelist JSON (schedule + forecast/previous/actual) ============
+        // Written by sr_vault_news_scan.py --auto (TradingView actuals + official schedule + FF fallback)
         let newsEvents = [];
+        let newsMeta = { last_fetched: '', source: '', whitelist: [] };
+
+        function mapNewsEvent(e) {
+            return {
+                date: e.date,
+                time: e.time_utc || e.time || '',
+                event: e.event,
+                currency: e.currency || '',
+                impact: e.impact || 'HIGH',
+                day_color: e.day_color || '',
+                forecast: e.forecast || '',
+                previous: e.previous || '',
+                actual: e.actual || '',
+                delta: e.delta,
+                delta_display: e.delta_display || '',
+                result: e.result || '',
+                verified: !!e.verified,
+                source: e.source || '',
+                source_url: e.source_url || '',
+                whitelist_id: e.whitelist_id || ''
+            };
+        }
 
         async function loadNewsFromJSON() {
             try {
-                const res = await fetch('sr_vault_assets/news/myfxbook_news.json', { cache: 'no-store' });
+                const res = await fetch('sr_vault_assets/news/myfxbook_news.json?t=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('JSON load failed');
                 const data = await res.json();
-                newsEvents = (data.events || []).map(e => ({
-                    date: e.date,
-                    time: e.time_utc || e.time || '',
-                    event: e.event,
-                    currency: e.currency || '',
-                    impact: e.impact || 'HIGH'
-                }));
+                newsMeta = {
+                    last_fetched: data.last_fetched || '',
+                    source: data.source || '',
+                    whitelist: data.whitelist || []
+                };
+                newsEvents = (data.events || []).map(mapNewsEvent);
             } catch (err) {
                 console.error('Failed to load news JSON', err);
-                // Fallback (used if JSON fetch fails / file://) — verified dates only
+                // Fallback — verified whitelist dates only (no invented noise)
                 newsEvents = [
-                    { date: "2026-07-22", time: "06:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH" },
-                    { date: "2026-07-22", time: "06:00", event: "CPI y/y", currency: "GBP", impact: "HIGH" },
-                    { date: "2026-07-30", time: "11:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH" },
-                    { date: "2026-08-12", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH" },
-                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH" }
-                ];
+                    { date: "2026-07-22", time: "06:00", event: "UK Inflation Rate", currency: "GBP", impact: "HIGH", day_color: "yellow", forecast: "2.7%", previous: "2.8%", actual: "", result: "", verified: true },
+                    { date: "2026-07-22", time: "06:00", event: "Core CPI y/y", currency: "GBP", impact: "HIGH", day_color: "yellow", forecast: "2.5%", previous: "2.6%", actual: "", result: "", verified: true },
+                    { date: "2026-07-29", time: "18:00", event: "FOMC Interest Rate Decision", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "3.75%", actual: "", result: "", verified: true },
+                    { date: "2026-07-30", time: "11:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH", day_color: "orange", forecast: "", previous: "3.75%", actual: "", result: "", verified: true },
+                    { date: "2026-08-07", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH", day_color: "orange", forecast: "", previous: "", actual: "", result: "", verified: true },
+                    { date: "2026-08-12", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true },
+                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true }
+                ].map(mapNewsEvent);
+                newsMeta = { last_fetched: '', source: 'offline fallback', whitelist: [] };
             }
             renderNews();
             updateDayStatus();
+        }
+
+        function resultClass(result) {
+            if (result === 'beat') return 'result-beat';
+            if (result === 'miss') return 'result-miss';
+            if (result === 'inline') return 'result-inline';
+            return 'result-pending';
+        }
+
+        function resultLabel(e) {
+            if (e.actual) {
+                const vs = e.delta_display || (e.result === 'inline' ? 'in line' : e.result || '');
+                const tag = e.result === 'beat' ? 'BEAT' : (e.result === 'miss' ? 'MISS' : (e.result === 'inline' ? 'IN LINE' : 'OUT'));
+                return `<span class="${resultClass(e.result)} font-semibold">Actual ${e.actual}</span>` +
+                    (e.forecast ? ` <span class="text-[#666]">vs FC ${e.forecast}</span>` : '') +
+                    (vs ? ` <span class="${resultClass(e.result)}">(${tag}${e.delta_display && e.delta_display !== 'in line' ? ' ' + e.delta_display : ''})</span>` : '');
+            }
+            // Not released yet
+            const bits = [];
+            if (e.forecast) bits.push(`FC ${e.forecast}`);
+            if (e.previous) bits.push(`Prev ${e.previous}`);
+            if (bits.length) return `<span class="result-pending">${bits.join(' · ')} · awaiting print</span>`;
+            return `<span class="result-pending">awaiting print</span>`;
+        }
+
+        function newsRowHtml(e, { showDate = false, compact = false } = {}) {
+            const flag = getFlag(e.currency);
+            let cls = 'news-yellow';
+            if ((e.day_color || '').toLowerCase() === 'orange' || eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
+            if ((e.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (e.event || '').toUpperCase().includes(k))) cls = 'news-red';
+
+            const dateBit = showDate ? `<span class="text-[#888] text-xs">${formatFullDate(e.date)}</span> ` : '';
+            const verified = e.verified ? `<span class="verified-dot" title="Verified whitelist event"></span>` : '';
+            const timeBit = e.time ? `<span class="text-[#666] text-xs font-mono">${e.time} UTC</span>` : '';
+
+            if (compact) {
+                return `<div class="py-0.5 text-sm">• ${flag} <span class="${cls}">${e.event}</span> <span class="text-[#888]">${formatDateOnly(e.date)}</span></div>`;
+            }
+
+            return `<div class="news-row">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="${cls} text-sm font-medium leading-snug">${verified}${dateBit}${flag} ${e.event}</div>
+                        <div class="mt-0.5">${timeBit}</div>
+                    </div>
+                </div>
+                <div class="mt-1.5 text-xs leading-relaxed">${resultLabel(e)}</div>
+            </div>`;
         }
 
         function getWeekStart(d) {
@@ -939,19 +1029,25 @@
                 return d >= nextMondayStr && d <= nextWeekEndStr;
             }).sort((a, b) => a.date.localeCompare(b.date));
 
+            // Meta line
+            const metaEl = document.getElementById('news-meta');
+            if (metaEl) {
+                const fetched = newsMeta.last_fetched
+                    ? new Date(newsMeta.last_fetched).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                    : '—';
+                metaEl.innerHTML = `Whitelist only · updated ${fetched}`;
+            }
+
             // TODAY
             const tEl = document.getElementById('news-today');
             if (tEl) {
                 if (todayEvents.length === 0) {
-                    tEl.innerHTML = '<div class="text-[#666] text-sm">No high-impact events today.</div>';
+                    tEl.innerHTML = '<div class="text-[#666] text-sm">No whitelist events today.</div>';
                 } else {
-                    tEl.innerHTML = todayEvents.map(e => {
-                        const flag = getFlag(e.currency);
-                        let cls = 'news-yellow';
-                        if (eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
-                        if (redKeywords.some(k => e.event.toUpperCase().includes(k))) cls = 'news-red';
-                        return `<div class="${cls} text-sm">• ${flag} ${e.event} <span class="text-[#888] text-xs">(${e.time})</span></div>`;
-                    }).join('');
+                    tEl.innerHTML = todayEvents
+                        .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+                        .map(e => newsRowHtml(e))
+                        .join('');
                 }
             }
 
@@ -959,14 +1055,10 @@
             const wEl = document.getElementById('news-this-week');
             if (wEl) {
                 if (thisWeekEvents.length === 0) {
-                    wEl.innerHTML = '<div class="text-[#666] text-sm">No more relevant events this week.</div>';
+                    wEl.innerHTML = '<div class="text-[#666] text-sm">No more whitelist events this week.</div>';
                 } else {
-                    // Sort earliest first
-                    thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date));
-                    wEl.innerHTML = thisWeekEvents.map(e => {
-                        const flag = getFlag(e.currency);
-                        return `<div class="flex gap-2 text-sm py-0.5"><span class="text-[#888] w-auto flex-shrink-0">${formatFullDate(e.date)}</span> <span>${flag} ${e.event}</span> <span class="text-[#888] text-xs ml-auto">${e.time}</span></div>`;
-                    }).join('');
+                    thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
+                    wEl.innerHTML = thisWeekEvents.map(e => newsRowHtml(e, { showDate: true })).join('');
                 }
             }
 
@@ -974,31 +1066,17 @@
             const nEl = document.getElementById('news-next-week');
             if (nEl) {
                 if (nextWeekEvents.length === 0) {
-                    nEl.innerHTML = '<div class="text-[#666] text-sm">No events scheduled yet.</div>';
+                    nEl.innerHTML = '<div class="text-[#666] text-sm">No whitelist events next week yet.</div>';
                 } else {
-                    nEl.innerHTML = nextWeekEvents.map(e => {
-                        const flag = getFlag(e.currency);
-                        return `<div class="py-0.5 text-sm">• ${flag} ${e.event} <span class="text-[#888]">${formatDateOnly(e.date)}</span></div>`;
-                    }).join('');
+                    nextWeekEvents.sort((a, b) => a.date.localeCompare(b.date));
+                    nEl.innerHTML = nextWeekEvents.map(e => newsRowHtml(e, { compact: true })).join('');
                 }
             }
         }
 
         function refreshNews() {
-            const ts = document.getElementById('news-last-refresh') || document.createElement('span');
-            if (!document.getElementById('news-last-refresh')) {
-                const header = document.querySelector('.mt-4 .flex.items-center.justify-between');
-                if (header) {
-                    const span = document.createElement('span');
-                    span.id = 'news-last-refresh';
-                    span.className = 'text-[10px] text-[#4ade80] ml-2';
-                    header.appendChild(span);
-                }
-            }
             const el = document.getElementById('news-last-refresh');
-            if (el) el.textContent = `Refreshed at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-
-            // Reload from the JSON (updated by GitHub Action)
+            if (el) el.textContent = `Refreshed ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             loadNewsFromJSON();
         }
 
@@ -1107,18 +1185,12 @@
             // Chart
             setupChartUpload();
 
-            // News - load from reliable JSON
+            // News — locked whitelist JSON (forecast / previous / actual)
             loadNewsFromJSON();
+            // Poll every 5 minutes so release-day actuals appear without manual refresh
+            setInterval(() => loadNewsFromJSON(), 5 * 60 * 1000);
 
-            // Initial refresh timestamp
-            const refreshEl = document.createElement('span');
-            refreshEl.id = 'news-last-refresh';
-            refreshEl.className = 'text-[10px] text-[#4ade80] ml-2';
-            refreshEl.textContent = 'Last refreshed via Grok search';
-            const header = document.querySelector('.mt-4 .flex.items-center.justify-between');
-            if (header) header.appendChild(refreshEl);
-
-            console.log('%c[SR Vault] Clean rebuild complete. Clocks, news, day status, and widgets ready.', 'color:#4ade80');
+            console.log('%c[SR Vault] News engine ready (whitelist + actuals).', 'color:#4ade80');
         }
 
         window.onload = init;

@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-07-21T15:06:09.356044",
+  "last_fetched": "2026-07-21T17:24:48.428768",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -190,7 +190,7 @@
       "currency": "USD",
       "impact": "HIGH",
       "day_color": "yellow",
-      "forecast": "",
+      "forecast": "3.75%",
       "previous": "3.75%",
       "actual": "",
       "delta": null,

@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-07-22T07:52:17.224933",
+  "last_fetched": "2026-07-22T09:23:03.757123",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -359,12 +359,12 @@
       "impact": "HIGH",
       "day_color": "yellow",
       "forecast": "",
-      "previous": "2.6",
+      "previous": "2.6%",
       "actual": "",
       "delta": null,
       "delta_display": "",
       "result": "",
-      "unit": "",
+      "unit": "%",
       "verified": true,
       "source": "TradingView economic calendar",
       "source_url": "http://www.ons.gov.uk/",

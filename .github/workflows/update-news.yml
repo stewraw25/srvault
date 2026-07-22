@@ -1,9 +1,10 @@
-name: Update News + ZeroHedge Feed (Hourly for Live SR Vault)
+name: Update News + Actuals (near-live)
 
 on:
   schedule:
-    # Every hour at :05 UTC — keeps forecast/previous/actual fresh on release days
-    - cron: '5 * * * *'
+    # Every 5 minutes (fastest GitHub Actions cron). On release days this
+    # picks up NFP/CPI/BOE actuals within a few minutes of the wire.
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -49,7 +50,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to news feeds."
           else
-            git commit -m "chore: auto-update whitelist calendar + actuals"
+            git commit -m "chore: near-live calendar + actuals refresh"
             git push
             echo "News feeds updated and pushed."
           fi

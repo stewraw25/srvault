@@ -855,8 +855,21 @@
 
         // ============ NEWS — locked whitelist JSON (schedule + forecast/previous/actual) ============
         // Written by sr_vault_news_scan.py --auto (TradingView actuals + official schedule + FF fallback)
+        // Near-instant prints:
+        //  1) GitHub Action refreshes JSON every 5 minutes
+        //  2) Browser polls raw.githubusercontent.com (updates seconds after Action push — faster than Pages CDN)
+        //  3) During a release window (event time −2m → +45m without actual), poll every 10s
         let newsEvents = [];
         let newsMeta = { last_fetched: '', source: '', whitelist: [] };
+        let newsPollTimer = null;
+        let newsLiveMode = false;
+
+        const NEWS_JSON_URLS = [
+            // Raw GitHub is available immediately after Action push (no Pages build wait)
+            'https://raw.githubusercontent.com/stewraw25/srvault/main/sr_vault_assets/news/myfxbook_news.json',
+            // Same-origin Pages copy (works offline/local too)
+            'sr_vault_assets/news/myfxbook_news.json'
+        ];
 
         function mapNewsEvent(e) {
             return {
@@ -879,11 +892,52 @@
             };
         }
 
+        function eventReleaseUtcMs(e) {
+            // time is UTC HH:MM on e.date
+            if (!e.date) return null;
+            const t = (e.time || '00:00').padStart(5, '0');
+            const iso = `${e.date}T${t}:00Z`;
+            const ms = Date.parse(iso);
+            return Number.isFinite(ms) ? ms : null;
+        }
+
+        function isInReleaseWindow(e, nowMs = Date.now()) {
+            const start = eventReleaseUtcMs(e);
+            if (start == null) return false;
+            const open = start - 2 * 60 * 1000;   // 2 min before
+            const close = start + 45 * 60 * 1000; // 45 min after
+            return nowMs >= open && nowMs <= close;
+        }
+
+        function needsLivePrintPolling() {
+            const now = Date.now();
+            return newsEvents.some(e => {
+                if (e.actual) return false;
+                // today (local) or in release window
+                if (e.date === localYMD() && isInReleaseWindow(e, now)) return true;
+                // also catch UTC day edge: if release window active regardless of local date
+                return isInReleaseWindow(e, now);
+            });
+        }
+
+        async function fetchNewsJsonPayload() {
+            let lastErr = null;
+            for (const base of NEWS_JSON_URLS) {
+                try {
+                    const url = base + (base.includes('?') ? '&' : '?') + 't=' + Date.now();
+                    const res = await fetch(url, { cache: 'no-store', mode: 'cors' });
+                    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + base);
+                    return await res.json();
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+            throw lastErr || new Error('All news JSON sources failed');
+        }
+
         async function loadNewsFromJSON() {
             try {
-                const res = await fetch('sr_vault_assets/news/myfxbook_news.json?t=' + Date.now(), { cache: 'no-store' });
-                if (!res.ok) throw new Error('JSON load failed');
-                const data = await res.json();
+                const data = await fetchNewsJsonPayload();
                 newsMeta = {
                     last_fetched: data.last_fetched || '',
                     source: data.source || '',
@@ -906,6 +960,23 @@
             }
             renderNews();
             updateDayStatus();
+            scheduleNewsPolling();
+        }
+
+        function scheduleNewsPolling() {
+            const live = needsLivePrintPolling();
+            newsLiveMode = live;
+            const intervalMs = live ? 10 * 1000 : 60 * 1000; // 10s in release window, else 1 min
+            if (newsPollTimer) clearInterval(newsPollTimer);
+            newsPollTimer = setInterval(() => loadNewsFromJSON(), intervalMs);
+
+            const el = document.getElementById('news-last-refresh');
+            if (el && live) {
+                const waiting = newsEvents.filter(e => !e.actual && isInReleaseWindow(e)).map(e => e.event);
+                if (waiting.length) {
+                    el.textContent = `Live scan · waiting for print (${waiting.slice(0, 2).join(', ')}) · every 10s`;
+                }
+            }
         }
 
         function resultClass(result) {
@@ -1035,7 +1106,8 @@
                 const fetched = newsMeta.last_fetched
                     ? new Date(newsMeta.last_fetched).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                     : '—';
-                metaEl.innerHTML = `Whitelist only · updated ${fetched}`;
+                const liveBit = needsLivePrintPolling() ? ' · <span class="text-[#facc15]">release window live</span>' : '';
+                metaEl.innerHTML = `Whitelist only · data ${fetched}${liveBit}`;
             }
 
             // TODAY
@@ -1185,12 +1257,14 @@
             // Chart
             setupChartUpload();
 
-            // News — locked whitelist JSON (forecast / previous / actual)
+            // News — locked whitelist JSON; adaptive poll (10s in release window, else 1 min)
             loadNewsFromJSON();
-            // Poll every 5 minutes so release-day actuals appear without manual refresh
-            setInterval(() => loadNewsFromJSON(), 5 * 60 * 1000);
+            // When you focus the tab during a print, re-check immediately
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') loadNewsFromJSON();
+            });
 
-            console.log('%c[SR Vault] News engine ready (whitelist + actuals).', 'color:#4ade80');
+            console.log('%c[SR Vault] News engine ready (whitelist + near-live actuals).', 'color:#4ade80');
         }
 
         window.onload = init;

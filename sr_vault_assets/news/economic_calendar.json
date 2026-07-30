@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-07-30T10:54:28.737786",
+  "last_fetched": "2026-07-30T12:27:04.512665",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -213,10 +213,10 @@
       "day_color": "orange",
       "forecast": "3.75%",
       "previous": "3.75%",
-      "actual": "",
-      "delta": null,
-      "delta_display": "",
-      "result": "",
+      "actual": "3.75%",
+      "delta": 0.0,
+      "delta_display": "in line",
+      "result": "inline",
       "unit": "%",
       "verified": true,
       "source": "TradingView economic calendar",

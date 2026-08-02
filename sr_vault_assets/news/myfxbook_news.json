@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-02T00:08:06.692282",
+  "last_fetched": "2026-08-02T03:50:08.721112",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -198,9 +198,9 @@
       "result": "inline",
       "unit": "%",
       "verified": true,
-      "source": "TradingView economic calendar",
+      "source": "Forex Factory",
       "source_url": "http://www.federalreserve.gov/",
-      "provider_title": "Fed Interest Rate Decision"
+      "provider_title": "Federal Funds Rate"
     },
     {
       "id": "boe_rate_2026-07-30",

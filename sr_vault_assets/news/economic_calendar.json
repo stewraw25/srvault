@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-03T08:17:55.242800",
+  "last_fetched": "2026-08-03T11:49:57.904013",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -369,6 +369,27 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.ons.gov.uk/",
       "provider_title": "Inflation Rate YoY"
+    },
+    {
+      "id": "us_nfp_2026-08-28",
+      "whitelist_id": "us_nfp",
+      "date": "2026-08-28",
+      "time_utc": "14:00",
+      "event": "Non-Farm Payrolls (NFP)",
+      "currency": "USD",
+      "impact": "HIGH",
+      "day_color": "orange",
+      "forecast": "",
+      "previous": "-911",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.bls.gov/",
+      "provider_title": "Non Farm Payrolls Annual Revision Prel"
     }
   ]
 }

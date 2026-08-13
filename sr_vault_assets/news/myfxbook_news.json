@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-12T23:48:55.392293",
+  "last_fetched": "2026-08-13T00:46:10.070739",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,48 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "uk_core_cpi_yoy_2026-07-22",
-      "whitelist_id": "uk_core_cpi_yoy",
-      "date": "2026-07-22",
-      "time_utc": "06:00",
-      "event": "Core CPI y/y",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "day_color": "yellow",
-      "forecast": "2.5%",
-      "previous": "2.6%",
-      "actual": "2.6%",
-      "delta": 0.10000000000000009,
-      "delta_display": "+0.10%",
-      "result": "beat",
-      "unit": "%",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.ons.gov.uk/",
-      "provider_title": "Core Inflation Rate YoY"
-    },
-    {
-      "id": "uk_inflation_yoy_2026-07-22",
-      "whitelist_id": "uk_inflation_yoy",
-      "date": "2026-07-22",
-      "time_utc": "06:00",
-      "event": "UK Inflation Rate",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "day_color": "yellow",
-      "forecast": "2.7%",
-      "previous": "2.8%",
-      "actual": "2.6%",
-      "delta": -0.10000000000000009,
-      "delta_display": "-0.10%",
-      "result": "miss",
-      "unit": "%",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.ons.gov.uk/",
-      "provider_title": "Inflation Rate YoY"
-    },
     {
       "id": "fed_rate_2026-07-29",
       "whitelist_id": "fed_rate",

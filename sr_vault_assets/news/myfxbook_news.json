@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-17T23:55:48.136480",
+  "last_fetched": "2026-08-18T01:13:20.421145",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -436,6 +436,27 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.federalreserve.gov/",
       "provider_title": "Fed Interest Rate Decision"
+    },
+    {
+      "id": "boe_rate_2026-09-17",
+      "whitelist_id": "boe_rate",
+      "date": "2026-09-17",
+      "time_utc": "11:00",
+      "event": "BOE Interest Rate Decision",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "orange",
+      "forecast": "",
+      "previous": "3.75%",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "%",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "https://www.bankofengland.co.uk",
+      "provider_title": "BoE Interest Rate Decision"
     }
   ]
 }

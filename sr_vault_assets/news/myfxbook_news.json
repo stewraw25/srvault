@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-19T23:53:28.861453",
+  "last_fetched": "2026-08-20T00:52:19.597606",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,27 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "fed_rate_2026-07-29",
-      "whitelist_id": "fed_rate",
-      "date": "2026-07-29",
-      "time_utc": "18:00",
-      "event": "FOMC Interest Rate Decision",
-      "currency": "USD",
-      "impact": "HIGH",
-      "day_color": "yellow",
-      "forecast": "3.75%",
-      "previous": "3.75%",
-      "actual": "3.75%",
-      "delta": 0.0,
-      "delta_display": "in line",
-      "result": "inline",
-      "unit": "%",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.federalreserve.gov/",
-      "provider_title": "Fed Interest Rate Decision"
-    },
     {
       "id": "boe_rate_2026-07-30",
       "whitelist_id": "boe_rate",

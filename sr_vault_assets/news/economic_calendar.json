@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-28T22:17:22.388705",
+  "last_fetched": "2026-08-29T03:44:41.185205",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,27 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "us_nfp_2026-08-07",
-      "whitelist_id": "us_nfp",
-      "date": "2026-08-07",
-      "time_utc": "12:30",
-      "event": "Non-Farm Payrolls (NFP)",
-      "currency": "USD",
-      "impact": "HIGH",
-      "day_color": "orange",
-      "forecast": "80",
-      "previous": "20",
-      "actual": "-23",
-      "delta": -103.0,
-      "delta_display": "-103",
-      "result": "miss",
-      "unit": "",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.bls.gov/",
-      "provider_title": "Non Farm Payrolls"
-    },
     {
       "id": "us_cpi_mom_2026-08-12",
       "whitelist_id": "us_cpi_mom",

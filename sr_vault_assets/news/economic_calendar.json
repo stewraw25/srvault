@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-08-31T12:47:55.003114",
+  "last_fetched": "2026-08-31T19:15:38.246206",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -363,12 +363,12 @@
       "impact": "HIGH",
       "day_color": "yellow",
       "forecast": "",
-      "previous": "3.75",
+      "previous": "3.75%",
       "actual": "",
       "delta": null,
       "delta_display": "",
       "result": "",
-      "unit": "",
+      "unit": "%",
       "verified": true,
       "source": "TradingView economic calendar",
       "source_url": "http://www.federalreserve.gov/",

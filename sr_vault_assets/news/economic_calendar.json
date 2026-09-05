@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-09-05T17:18:38.172992",
+  "last_fetched": "2026-09-05T19:07:43.098570",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -173,7 +173,7 @@
       "currency": "USD",
       "impact": "HIGH",
       "day_color": "yellow",
-      "forecast": "",
+      "forecast": "3.4%",
       "previous": "3.4%",
       "actual": "",
       "delta": null,
@@ -215,7 +215,7 @@
       "currency": "USD",
       "impact": "HIGH",
       "day_color": "yellow",
-      "forecast": "",
+      "forecast": "2.4%",
       "previous": "2.5%",
       "actual": "",
       "delta": null,

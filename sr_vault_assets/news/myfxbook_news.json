@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-09-18T23:43:37.613192",
+  "last_fetched": "2026-09-19T01:39:33.062403",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,27 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "us_nfp_2026-08-28",
-      "whitelist_id": "us_nfp",
-      "date": "2026-08-28",
-      "time_utc": "14:00",
-      "event": "Non-Farm Payrolls (NFP)",
-      "currency": "USD",
-      "impact": "HIGH",
-      "day_color": "orange",
-      "forecast": "",
-      "previous": "-911",
-      "actual": "-79",
-      "delta": null,
-      "delta_display": "",
-      "result": "",
-      "unit": "",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.bls.gov/",
-      "provider_title": "Non Farm Payrolls Annual Revision Prel"
-    },
     {
       "id": "us_nfp_2026-09-04",
       "whitelist_id": "us_nfp",

@@ -383,7 +383,7 @@
                 
                 <div id="chart-container"
                      class="fixed-chart-container flex-1 flex items-center justify-center relative cursor-pointer w-full max-h-[340px] border-2 border-dashed border-[#4a4a4a] hover:border-[#22c55e]/60 transition-colors"
-                     title="Click or drop image to replace the current chart">
+                     title="Click or drop image for personal preview">
                     
                     <img id="chart-image" 
                          src="sr_vault_assets/charts/current_weekly_chart.png?v=20260924" 
@@ -391,9 +391,15 @@
                          alt="GBPJPY Daily Chart"
                          onerror="this.src='https://picsum.photos/id/1015/600/420';">
                     
+                    <!-- Personal preview badge (hidden by default) -->
+                    <div id="chart-preview-badge"
+                         class="hidden absolute top-3 left-3 right-3 bg-[#052e16] border border-[#22c55e]/50 text-[10px] px-2.5 py-1 rounded text-[#4ade80] text-center tracking-wider font-semibold">
+                        PERSONAL PREVIEW — only on this browser
+                    </div>
+                    
                     <div id="chart-replace-badge"
                          class="absolute bottom-3 right-3 bg-black/80 text-[10px] px-2.5 py-0.5 rounded text-[#aaa] cursor-pointer hover:bg-[#22c55e]/90 hover:text-black transition">
-                        Click or drop to replace
+                        Click or drop to preview
                     </div>
                     
                     <div id="chart-drop-hint" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center text-[#4ade80] text-sm font-semibold tracking-wider rounded-lg pointer-events-none">
@@ -403,7 +409,20 @@
                 
                 <input type="file" id="chart-upload" accept="image/*" class="hidden">
                 
-                <div id="chart-last-updated" class="text-[10px] text-[#888] mt-auto pt-1.5 px-1 text-center">Last updated: Today</div>
+                <!-- Chart controls row -->
+                <div class="flex items-center justify-between mt-2 px-1 gap-2">
+                    <div id="chart-last-updated" class="text-[10px] text-[#888]">Last updated: Today</div>
+                    <button id="chart-clear-preview" 
+                            class="hidden text-[10px] px-2 py-0.5 rounded bg-[#222] border border-[#333] text-[#4ade80] hover:bg-[#333] transition tracking-wider"
+                            onclick="clearPersonalPreview()">
+                        Show live chart
+                    </button>
+                </div>
+                
+                <!-- Help text -->
+                <div class="text-[9px] text-[#666] mt-1 px-1 text-center leading-snug">
+                    Drop a chart for a personal preview on this browser. To update the live homepage for everyone, send the image to Merlin in chat.
+                </div>
             </div>
 
             <!-- Box 3: LIVE FINANCIAL NEWS - TradingView Heatmap (rebuilt) -->
@@ -1152,18 +1171,45 @@
             loadNewsFromJSON();
         }
 
-        // ============ CHART UPLOAD ============
+        // ============ CHART UPLOAD (DUAL MODE) ============
+        const LIVE_CHART_URL = 'sr_vault_assets/charts/current_weekly_chart.png?v=20260924';
+        const PERSONAL_CHART_KEY = 'sr_personal_chart';
+
         function setupChartUpload() {
             const container = document.getElementById('chart-container');
             const fileInput = document.getElementById('chart-upload');
-            const badge = document.getElementById('chart-replace-badge');
+            const replaceBadge = document.getElementById('chart-replace-badge');
+            const previewBadge = document.getElementById('chart-preview-badge');
+            const clearBtn = document.getElementById('chart-clear-preview');
             const dropHint = document.getElementById('chart-drop-hint');
             const lastUpdated = document.getElementById('chart-last-updated');
+            const img = document.getElementById('chart-image');
 
-            if (!container || !fileInput) return;
+            if (!container || !fileInput || !img) return;
 
-            // Clear any stale localStorage chart so committed server PNG always wins
-            localStorage.removeItem('sr_current_chart');
+            // Migrate: clear old key if present
+            if (localStorage.getItem('sr_current_chart')) {
+                localStorage.removeItem('sr_current_chart');
+            }
+
+            function showPreviewMode(dataUrl) {
+                img.src = dataUrl;
+                if (previewBadge) previewBadge.classList.remove('hidden');
+                if (clearBtn) clearBtn.classList.remove('hidden');
+                if (replaceBadge) replaceBadge.textContent = 'Click or drop to update preview';
+                if (lastUpdated) {
+                    const now = new Date();
+                    lastUpdated.textContent = `Preview set: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                }
+            }
+
+            function showLiveMode() {
+                img.src = LIVE_CHART_URL;
+                if (previewBadge) previewBadge.classList.add('hidden');
+                if (clearBtn) clearBtn.classList.add('hidden');
+                if (replaceBadge) replaceBadge.textContent = 'Click or drop to preview';
+                if (lastUpdated) lastUpdated.textContent = 'Showing live chart';
+            }
 
             function handleFile(file) {
                 if (!file || !file.type.startsWith('image/')) {
@@ -1172,12 +1218,9 @@
                 }
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.getElementById('chart-image');
-                    if (img) img.src = e.target.result;
-                    if (lastUpdated) {
-                        const now = new Date();
-                        lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} (session preview)`;
-                    }
+                    const dataUrl = e.target.result;
+                    localStorage.setItem(PERSONAL_CHART_KEY, dataUrl);
+                    showPreviewMode(dataUrl);
                 };
                 reader.readAsDataURL(file);
             }
@@ -1195,6 +1238,29 @@
                 dropHint.classList.add('hidden');
                 if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
             });
+
+            // On load: check for personal preview
+            const savedPreview = localStorage.getItem(PERSONAL_CHART_KEY);
+            if (savedPreview) {
+                showPreviewMode(savedPreview);
+            } else {
+                showLiveMode();
+            }
+        }
+
+        function clearPersonalPreview() {
+            localStorage.removeItem(PERSONAL_CHART_KEY);
+            const img = document.getElementById('chart-image');
+            const previewBadge = document.getElementById('chart-preview-badge');
+            const clearBtn = document.getElementById('chart-clear-preview');
+            const replaceBadge = document.getElementById('chart-replace-badge');
+            const lastUpdated = document.getElementById('chart-last-updated');
+
+            if (img) img.src = LIVE_CHART_URL;
+            if (previewBadge) previewBadge.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (replaceBadge) replaceBadge.textContent = 'Click or drop to preview';
+            if (lastUpdated) lastUpdated.textContent = 'Showing live chart';
         }
 
         // ============ ACCOUNT SNAPSHOT + TREND ============

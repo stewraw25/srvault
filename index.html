@@ -386,7 +386,7 @@
                      title="Click or drop image to replace the current chart">
                     
                     <img id="chart-image" 
-                         src="sr_vault_assets/charts/current_weekly_chart.png" 
+                         src="sr_vault_assets/charts/current_weekly_chart.png?v=20260924" 
                          class="w-full h-full object-cover rounded-lg"
                          alt="GBPJPY Daily Chart"
                          onerror="this.src='https://picsum.photos/id/1015/600/420';">
@@ -1162,6 +1162,9 @@
 
             if (!container || !fileInput) return;
 
+            // Clear any stale localStorage chart so committed server PNG always wins
+            localStorage.removeItem('sr_current_chart');
+
             function handleFile(file) {
                 if (!file || !file.type.startsWith('image/')) {
                     alert('Please select an image file.');
@@ -1171,10 +1174,9 @@
                 reader.onload = function(e) {
                     const img = document.getElementById('chart-image');
                     if (img) img.src = e.target.result;
-                    localStorage.setItem('sr_current_chart', e.target.result);
                     if (lastUpdated) {
                         const now = new Date();
-                        lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                        lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} (session preview)`;
                     }
                 };
                 reader.readAsDataURL(file);
@@ -1193,13 +1195,6 @@
                 dropHint.classList.add('hidden');
                 if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
             });
-
-            // Load saved
-            const saved = localStorage.getItem('sr_current_chart');
-            if (saved) {
-                const img = document.getElementById('chart-image');
-                if (img) img.src = saved;
-            }
         }
 
         // ============ ACCOUNT SNAPSHOT + TREND ============

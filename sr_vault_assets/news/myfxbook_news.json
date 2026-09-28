@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-09-27T22:03:12.395993",
+  "last_fetched": "2026-09-28T00:36:13.383242",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -373,6 +373,27 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.ons.gov.uk/",
       "provider_title": "Inflation Rate YoY"
+    },
+    {
+      "id": "fed_rate_2026-10-28",
+      "whitelist_id": "fed_rate",
+      "date": "2026-10-28",
+      "time_utc": "18:00",
+      "event": "FOMC Interest Rate Decision",
+      "currency": "USD",
+      "impact": "HIGH",
+      "day_color": "yellow",
+      "forecast": "",
+      "previous": "4",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.federalreserve.gov/",
+      "provider_title": "Fed Interest Rate Decision"
     }
   ]
 }

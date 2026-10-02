@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-02T08:35:33.126929",
+  "last_fetched": "2026-10-02T14:57:32.833574",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -237,11 +237,11 @@
       "impact": "HIGH",
       "day_color": "orange",
       "forecast": "90",
-      "previous": "162",
-      "actual": "",
-      "delta": null,
-      "delta_display": "",
-      "result": "",
+      "previous": "133",
+      "actual": "29",
+      "delta": -61.0,
+      "delta_display": "-61",
+      "result": "miss",
       "unit": "",
       "verified": true,
       "source": "TradingView economic calendar",

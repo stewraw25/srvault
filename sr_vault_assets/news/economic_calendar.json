@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-05T20:43:06.520610",
+  "last_fetched": "2026-10-06T01:30:44.601719",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -310,6 +310,27 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.federalreserve.gov/",
       "provider_title": "Fed Interest Rate Decision"
+    },
+    {
+      "id": "boe_rate_2026-11-05",
+      "whitelist_id": "boe_rate",
+      "date": "2026-11-05",
+      "time_utc": "12:00",
+      "event": "BOE Interest Rate Decision",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "orange",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "https://www.bankofengland.co.uk",
+      "provider_title": "BoE Interest Rate Decision"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-06T23:50:23.410881",
+  "last_fetched": "2026-10-07T02:44:41.786182",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -331,6 +331,27 @@
       "source": "TradingView economic calendar",
       "source_url": "https://www.bankofengland.co.uk",
       "provider_title": "BoE Interest Rate Decision"
+    },
+    {
+      "id": "us_nfp_2026-11-06",
+      "whitelist_id": "us_nfp",
+      "date": "2026-11-06",
+      "time_utc": "13:30",
+      "event": "Non-Farm Payrolls (NFP)",
+      "currency": "USD",
+      "impact": "HIGH",
+      "day_color": "orange",
+      "forecast": "",
+      "previous": "29",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.bls.gov/",
+      "provider_title": "Non Farm Payrolls"
     }
   ]
 }

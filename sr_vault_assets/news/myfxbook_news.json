@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-08T20:23:15.110716",
+  "last_fetched": "2026-10-09T00:31:24.613013",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,27 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "boe_rate_2026-09-17",
-      "whitelist_id": "boe_rate",
-      "date": "2026-09-17",
-      "time_utc": "11:00",
-      "event": "BOE Interest Rate Decision",
-      "currency": "GBP",
-      "impact": "HIGH",
-      "day_color": "orange",
-      "forecast": "3.75%",
-      "previous": "3.75%",
-      "actual": "3.75%",
-      "delta": 0.0,
-      "delta_display": "in line",
-      "result": "inline",
-      "unit": "%",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "https://www.bankofengland.co.uk",
-      "provider_title": "BoE Interest Rate Decision"
-    },
     {
       "id": "us_nfp_2026-10-02",
       "whitelist_id": "us_nfp",

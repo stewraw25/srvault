@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-13T03:56:52.104355",
+  "last_fetched": "2026-10-13T11:31:44.746162",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -110,7 +110,7 @@
       "currency": "USD",
       "impact": "HIGH",
       "day_color": "yellow",
-      "forecast": "3.7%",
+      "forecast": "3.6%",
       "previous": "3.4%",
       "actual": "",
       "delta": null,
@@ -352,6 +352,48 @@
       "source": "TradingView economic calendar",
       "source_url": "https://www.bls.gov",
       "provider_title": "Core Inflation Rate YoY"
+    },
+    {
+      "id": "uk_core_cpi_yoy_2026-11-18",
+      "whitelist_id": "uk_core_cpi_yoy",
+      "date": "2026-11-18",
+      "time_utc": "07:00",
+      "event": "Core CPI y/y",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "yellow",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.ons.gov.uk/",
+      "provider_title": "Core Inflation Rate YoY"
+    },
+    {
+      "id": "uk_inflation_yoy_2026-11-18",
+      "whitelist_id": "uk_inflation_yoy",
+      "date": "2026-11-18",
+      "time_utc": "07:00",
+      "event": "UK Inflation Rate",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "yellow",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.ons.gov.uk/",
+      "provider_title": "Inflation Rate YoY"
     }
   ]
 }

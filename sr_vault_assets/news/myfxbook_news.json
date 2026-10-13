@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-13T11:31:44.746162",
+  "last_fetched": "2026-10-13T18:28:39.483228",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -216,12 +216,12 @@
       "impact": "HIGH",
       "day_color": "yellow",
       "forecast": "",
-      "previous": "4",
+      "previous": "4%",
       "actual": "",
       "delta": null,
       "delta_display": "",
       "result": "",
-      "unit": "",
+      "unit": "%",
       "verified": true,
       "source": "TradingView economic calendar",
       "source_url": "http://www.federalreserve.gov/",

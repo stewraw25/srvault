@@ -759,7 +759,7 @@
                         <span class="font-semibold">YELLOW DAY</span> 
                         <span>🟡</span>
                     </div>
-                    <div class="text-xs font-normal">Moderate Impact News Day — Exercise Caution</div>
+                    <div class="text-xs font-normal">News Day — No entries 4h before release</div>
                 `;
             } else if (color === 'orange') {
                 text.innerHTML = `
@@ -809,16 +809,35 @@
                 `;
             } else if (color === 'yellow') {
                 badge.innerHTML = '🟡 YELLOW DAY';
-                title.textContent = 'Yellow News Day — Exercise Caution';
+                title.textContent = 'Yellow Days – News';
                 html = `
-                    <p>Moderate impact news today. Exercise extra caution.</p>
-                    <ul class="list-disc pl-5 mt-3 space-y-1 text-xs">
-                        <li>Reduce position size by at least 50%</li>
-                        <li>Avoid entering new trades 30 minutes before and after the high-impact release</li>
-                        <li>Wait for the data to print and price to establish clear direction</li>
-                        <li>Only take the highest probability setups with strong confluences</li>
-                        <li>Be prepared for increased volatility — tighten stops if in a trade</li>
-                    </ul>
+                    <p class="font-bold text-[#facc15] text-center tracking-wide">DISCIPLINE – RISK MANAGEMENT – PATIENCE.<br>LESS TRADING IS MORE!</p>
+                    <p class="font-semibold mt-2">Yellow Days – News</p>
+                    <div class="mt-3">
+                        <strong>1. Before the news release</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1 text-xs">
+                            <li><strong>DO NOT</strong> enter a trade 4 hours before a news release</li>
+                            <li>If already in a trade: close half</li>
+                            <li>Don't enter trades during this period, to avoid unpredictable market movements</li>
+                        </ul>
+                    </div>
+                    <div class="mt-3">
+                        <strong>2. Trading after the news release</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1 text-xs">
+                            <li>News <strong>BEATS</strong> consensus: wait for the next zone in favour of consensus and trade it</li>
+                            <li>News <strong>MATCHES</strong> consensus: trade as normal, but the zone needs to be 100+ pips away</li>
+                            <li>News <strong>MISSES</strong> consensus: wait for the next zone in favour of consensus and trade it</li>
+                        </ul>
+                        <p class="text-xs font-bold text-[#facc15] mt-2">*** DO NOT TRADE AGAINST CONSENSUS (follow the reversal trade rules below) ***</p>
+                    </div>
+                    <div class="mt-3">
+                        <strong>3. Reversal trades on high-impact news days</strong>
+                        <ul class="list-disc pl-5 mt-1 space-y-1 text-xs">
+                            <li>Enter reversal trades only after 7PM UK time</li>
+                            <li>These reversals typically play out the following day</li>
+                            <li>Or avoid trading and get into the pullback the next day</li>
+                        </ul>
+                    </div>
                 `;
             } else if (color === 'orange') {
                 badge.innerHTML = '🟠 ORANGE DAY (BOE / NFP)';

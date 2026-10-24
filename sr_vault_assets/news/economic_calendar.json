@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-23T23:59:48.589357",
+  "last_fetched": "2026-10-24T04:23:31.910933",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -59,27 +59,6 @@
     }
   ],
   "events": [
-    {
-      "id": "us_nfp_2026-10-02",
-      "whitelist_id": "us_nfp",
-      "date": "2026-10-02",
-      "time_utc": "12:30",
-      "event": "Non-Farm Payrolls (NFP)",
-      "currency": "USD",
-      "impact": "HIGH",
-      "day_color": "orange",
-      "forecast": "90",
-      "previous": "133",
-      "actual": "29",
-      "delta": -61.0,
-      "delta_display": "-61",
-      "result": "miss",
-      "unit": "",
-      "verified": true,
-      "source": "TradingView economic calendar",
-      "source_url": "http://www.bls.gov/",
-      "provider_title": "Non Farm Payrolls"
-    },
     {
       "id": "us_cpi_mom_2026-10-14",
       "whitelist_id": "us_cpi_mom",

@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-10-28T15:20:22.066629",
+  "last_fetched": "2026-10-28T20:23:23.356098",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -196,10 +196,10 @@
       "day_color": "yellow",
       "forecast": "4%",
       "previous": "4%",
-      "actual": "",
-      "delta": null,
-      "delta_display": "",
-      "result": "",
+      "actual": "4%",
+      "delta": 0.0,
+      "delta_display": "in line",
+      "result": "inline",
       "unit": "%",
       "verified": true,
       "source": "TradingView economic calendar",

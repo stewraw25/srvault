@@ -36,6 +36,8 @@ os.makedirs(NEWS_DIR, exist_ok=True)
 # PHASE 1 — FROZEN WHITELIST (only these ever appear on SR Vault)
 # =============================================================================
 # day_color drives the panel bar: yellow | orange | red (red is mostly calendar EOM/EOQ)
+# "highlight" is NOT a day colour. UK Budget / Spring Statement are flagged only;
+# they must never turn a day green, yellow, orange, or red.
 # aliases are matched case-insensitively against provider titles.
 # currency must match event currency (USD/GBP).
 
@@ -170,6 +172,51 @@ WHITELIST: list[dict[str, Any]] = [
         ],
         "exclude_if": ["minutes", "speech", "speak", "press conference"],
     },
+    # --- HIGHLIGHT: UK Budget / Autumn Budget (flag only — no day-colour change) ---
+    {
+        "id": "uk_autumn_budget",
+        "display": "UK Autumn Budget",
+        "currency": "GBP",
+        "day_color": "highlight",
+        "highlight": True,
+        "highlight_label": "UK Budget",
+        "aliases": [
+            "uk autumn budget",
+            "autumn budget",
+            "uk budget",
+            "chancellor's budget",
+            "chancellors budget",
+            "budget speech",
+        ],
+        "exclude_if": [
+            "deficit",
+            "balance",
+            "surplus",
+            "borrowing",
+            "spring",
+            "responsibility",
+        ],
+    },
+    # --- HIGHLIGHT: UK Spring Statement (flag only — no day-colour change) ---
+    {
+        "id": "uk_spring_statement",
+        "display": "UK Spring Statement",
+        "currency": "GBP",
+        "day_color": "highlight",
+        "highlight": True,
+        "highlight_label": "Spring Statement",
+        "aliases": [
+            "uk spring statement",
+            "spring statement",
+            "spring budget",
+        ],
+        "exclude_if": [
+            "autumn",
+            "deficit",
+            "balance",
+            "borrowing",
+        ],
+    },
 ]
 
 # Official long-range schedule (authoritative dates from BLS / ONS / BOE / Fed calendars).
@@ -267,6 +314,15 @@ AUTHORITATIVE_SCHEDULE: list[dict[str, Any]] = [
         "time_utc": "06:00",
         "whitelist_id": "uk_core_cpi_yoy",
         "source_url": "https://www.ons.gov.uk/economy/inflationandpriceindices",
+    },
+    # HIGHLIGHT only — 12:30 UK. 28 Oct 2026 is GMT, so this is 12:30 UTC.
+    # Does not change the day's GREEN/YELLOW/ORANGE/RED colour.
+    {
+        "date": "2026-10-28",
+        "time_utc": "12:30",
+        "whitelist_id": "uk_autumn_budget",
+        "source": "Official schedule (HM Treasury)",
+        "source_url": "https://www.gov.uk/government/topical-events/autumn-budget",
     },
 ]
 
@@ -395,6 +451,8 @@ def empty_event(wl: dict, date: str, time_utc: str, **extra) -> dict[str, Any]:
         "currency": wl["currency"],
         "impact": "HIGH",
         "day_color": wl["day_color"],
+        "highlight": bool(wl.get("highlight")),
+        "highlight_label": wl.get("highlight_label") or "",
         "forecast": "",
         "previous": "",
         "actual": "",
@@ -604,7 +662,7 @@ def schedule_events() -> list[dict]:
             wl,
             row["date"],
             row["time_utc"],
-            source="Official schedule (BLS/ONS/BOE/Fed)",
+            source=row.get("source") or "Official schedule (BLS/ONS/BOE/Fed)",
             source_url=row.get("source_url", ""),
             verified=True,
         )
@@ -626,7 +684,14 @@ def merge_events(*lists: list[dict]) -> list[dict]:
                 wl = match_whitelist(e.get("event", ""), e.get("currency", ""))
                 if not wl:
                     continue
-                e = {**e, "whitelist_id": wl["id"], "event": wl["display"], "day_color": wl["day_color"]}
+                e = {
+                    **e,
+                    "whitelist_id": wl["id"],
+                    "event": wl["display"],
+                    "day_color": wl["day_color"],
+                    "highlight": bool(wl.get("highlight")),
+                    "highlight_label": wl.get("highlight_label") or "",
+                }
             key = event_key(e)
             if key not in merged:
                 merged[key] = dict(e)
@@ -643,6 +708,11 @@ def merge_events(*lists: list[dict]) -> list[dict]:
                 base["verified"] = True
             if e.get("day_color"):
                 base["day_color"] = e["day_color"]
+            # Highlight stays a flag. It is never promoted into a day colour.
+            if e.get("highlight"):
+                base["highlight"] = True
+                label = e.get("highlight_label") or base.get("highlight_label") or ""
+                base["highlight_label"] = label
             if e.get("event"):
                 base["event"] = e["event"]
             # recompute vs consensus after overlay
@@ -661,15 +731,19 @@ def merge_events(*lists: list[dict]) -> list[dict]:
 
 
 def save_cache(events: list[dict], source: str) -> dict:
-    whitelist_summary = [
-        {
+    whitelist_summary = []
+    for w in WHITELIST:
+        row = {
             "id": w["id"],
             "display": w["display"],
             "currency": w["currency"],
             "day_color": w["day_color"],
         }
-        for w in WHITELIST
-    ]
+        # Only highlight rows carry the extra flag, so colour entries stay unchanged.
+        if w.get("highlight"):
+            row["highlight"] = True
+            row["highlight_label"] = w.get("highlight_label") or ""
+        whitelist_summary.append(row)
     cache = {
         "last_fetched": datetime.now().isoformat(),
         "source": source,
@@ -728,6 +802,9 @@ def main() -> None:
             e["whitelist_id"] = wl["id"]
             e["event"] = e.get("event") or wl["display"]
             e["day_color"] = wl["day_color"]
+            # Highlight is a flag, never a trading colour. Keep it off colour events.
+            e["highlight"] = bool(wl.get("highlight"))
+            e["highlight_label"] = wl.get("highlight_label") or ""
             prev_clean.append(e)
 
     live_tv: list[dict] = []

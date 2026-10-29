@@ -56,6 +56,22 @@
       "display": "FOMC Interest Rate Decision",
       "currency": "USD",
       "day_color": "yellow"
+    },
+    {
+      "id": "uk_autumn_budget",
+      "display": "UK Autumn Budget",
+      "currency": "GBP",
+      "day_color": "highlight",
+      "highlight": true,
+      "highlight_label": "UK Budget"
+    },
+    {
+      "id": "uk_spring_statement",
+      "display": "UK Spring Statement",
+      "currency": "GBP",
+      "day_color": "highlight",
+      "highlight": true,
+      "highlight_label": "Spring Statement"
     }
   ],
   "events": [
@@ -184,6 +200,28 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.ons.gov.uk/",
       "provider_title": "Inflation Rate YoY"
+    },
+    {
+      "id": "uk_autumn_budget_2026-10-28",
+      "whitelist_id": "uk_autumn_budget",
+      "date": "2026-10-28",
+      "time_utc": "12:30",
+      "event": "UK Autumn Budget",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "highlight",
+      "highlight": true,
+      "highlight_label": "UK Budget",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "Official schedule (HM Treasury)",
+      "source_url": "https://www.gov.uk/government/topical-events/autumn-budget"
     },
     {
       "id": "fed_rate_2026-10-28",

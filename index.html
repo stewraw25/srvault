@@ -110,10 +110,50 @@
         .status-yellow { background: linear-gradient(90deg, #3f2a00, #854d0e); border-color: #facc15; color: #facc15; }
         .status-orange { background: linear-gradient(90deg, #431407, #9a3412); border-color: #fb923c; color: #fb923c; }
         .status-red { background: linear-gradient(90deg, #450a0a, #991b1b); border-color: #f87171; color: #f87171; }
+        /* ELECTION is a no-trade restriction, not a recolour of GREEN / YELLOW / ORANGE / RED. */
+        .status-election { background: linear-gradient(90deg, #2e1064, #6b21a8); border-color: #c084fc; color: #e9d5ff; }
 
         .news-yellow { color: #facc15; }
         .news-orange { color: #fb923c; }
         .news-red { color: #f87171; }
+        .news-election { color: #d8b4fe; }
+
+        .news-row-election {
+            border-color: #7e22ce;
+            background: linear-gradient(90deg, rgba(126, 34, 206, 0.18), #0c0c0c 46%);
+        }
+
+        .election-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid #c084fc;
+            background: rgba(88, 28, 135, 0.55);
+            color: #f3e8ff;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+
+        .overlap-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+        .overlap-orange { border: 1px solid #fb923c; background: rgba(154, 52, 18, 0.45); color: #ffedd5; }
+        .overlap-yellow { border: 1px solid #facc15; background: rgba(133, 77, 14, 0.45); color: #fef9c3; }
+        .overlap-red { border: 1px solid #f87171; background: rgba(153, 27, 27, 0.45); color: #fee2e2; }
 
         .news-row {
             border: 1px solid #222;
@@ -485,7 +525,7 @@
             <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
                 <div class="font-semibold tracking-wider text-sm">RELEVANT NEWS — WHITELIST ONLY</div>
                 <div class="text-[10px] text-[#888] flex items-center gap-2 flex-wrap">
-                    <span id="news-meta" class="text-[#666]">Locked events only (NFP · BOE · CPI · FOMC) · forecast / previous / actual</span>
+                    <span id="news-meta" class="text-[#666]">Locked events only (NFP · BOE · CPI · FOMC · Elections) · forecast / previous / actual</span>
                     <span id="news-last-refresh" class="text-[#4ade80]"></span>
                     <button onclick="refreshNews()" class="underline hover:text-[#4ade80]">Refresh</button>
                 </div>
@@ -568,6 +608,13 @@
                     <div onclick="showDayRules('red')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
                         <div class="font-semibold text-[#f87171] mb-1">RED (EOM / EOQ)</div>
                         <div class="text-[#888] text-xs">High-impact events on End of Month or End of Quarter (keyword match EOM/EOQ)</div>
+                    </div>
+                    <div onclick="showDayRules('election')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors md:col-span-2 lg:col-span-4 border-t border-[#3b0764] pt-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="election-badge">ELECTION</span>
+                            <span class="font-semibold text-[#d8b4fe]">NO TRADES</span>
+                        </div>
+                        <div class="text-[#c4b5fd] text-xs">Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result.</div>
                     </div>
                 </div>
             </div>
@@ -697,6 +744,9 @@
                     if (h >= 13 && h < 22) active.push('NEW YORK');
                     pill.innerHTML = active.length ? active.join(' • ') : 'CLOSED';
                 }
+
+                // Flip the election window at 23:00 GMT without waiting for the next news poll.
+                if (typeof refreshDayStatusIfDue === 'function') refreshDayStatusIfDue(now);
             }
 
             tick();
@@ -711,6 +761,10 @@
         const yellowTriggers = ['CPI y/y', 'Core CPI y/y', 'CPI m/m', 'Core CPI m/m', 'CPI (MoM)', 'Core CPI (MoM)', 'US CPI y/y', 'UK Inflation Rate', 'US FOMC Interest Rate Decision', 'FOMC Interest Rate Decision', 'FED Interest Rate Decision'];
         const orangeTriggers = ['BOE Interest Rate Decision', 'Bank of England MPC Rate Decision', 'Non-Farm Payrolls (NFP)', 'US Nonfarm Payrolls', 'Non-Farm Payrolls', 'NFP'];
         const redKeywords = ['EOM', 'EOQ', 'End of Month', 'End of Quarter'];
+        // Stewart, 2 Nov 2026. Same sentence as the legend and sr_vault_news_scan.py.
+        const ELECTION_RULE = 'Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result.';
+        let newsLoaded = false;
+        let dayStatusStamp = '';
 
         function eventMatchesList(evName, list) {
             const n = (evName || '').trim();
@@ -720,19 +774,118 @@
             return list.some(t => u === String(t).toUpperCase() || u.includes(String(t).toUpperCase()));
         }
 
-        function getDayColor() {
-            const today = localYMD();
-            const todayEvents = newsEvents.filter(e => e.date === today);
+        function escHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // event_type "election" is the reusable kind (US midterms, US presidential, UK general).
+        function isElectionEvent(ev) {
+            if (!ev) return false;
+            if ((ev.event_type || '').toLowerCase() === 'election') return true;
+            return (ev.restriction || '') === 'no_trade' && Array.isArray(ev.no_trade_dates) && ev.no_trade_dates.length > 0;
+        }
+
+        function appearanceDates(e) {
+            if (isElectionEvent(e)) {
+                const dates = Array.isArray(e.no_trade_dates) ? e.no_trade_dates.filter(Boolean) : [];
+                if (dates.length) return dates.slice();
+            }
+            return e && e.date ? [e.date] : [];
+        }
+
+        function electionsCovering(dateStr) {
+            return newsEvents.filter(e => isElectionEvent(e) && appearanceDates(e).includes(dateStr));
+        }
+
+        function electionWindowStarted(e, now = new Date()) {
+            const from = Date.parse(e.no_trade_from_utc || '');
+            if (!Number.isFinite(from)) return true;
+            return now.getTime() >= from;
+        }
+
+        function electionActiveOn(dateStr, now = new Date()) {
+            return electionsCovering(dateStr).some(e => electionWindowStarted(e, now));
+        }
+
+        function electionWhenText(e, dateStr) {
+            const dates = appearanceDates(e);
+            const first = dates[0];
+            const hm = (e.time || '').slice(0, 5);
+            if (dateStr === first && hm && hm !== '00:00') return `NO TRADES from ${hm} GMT`;
+            return 'NO TRADES — all day';
+        }
+
+        function electionBadgeHtml(extra) {
+            const text = extra ? `ELECTION · ${extra}` : 'ELECTION';
+            return `<span class="election-badge" title="${escHtml(ELECTION_RULE)}">${escHtml(text)}</span>`;
+        }
+
+        function eventIsRed(ev) {
+            return (ev.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (ev.event || '').toUpperCase().includes(k));
+        }
+
+        function eventIsOrange(ev) {
+            return (ev.day_color || '').toLowerCase() === 'orange' || eventMatchesList(ev.event, orangeTriggers);
+        }
+
+        function eventIsYellow(ev) {
+            return (ev.day_color || '').toLowerCase() === 'yellow' || eventMatchesList(ev.event, yellowTriggers);
+        }
+
+        // One colour per event. Red outranks orange, orange outranks yellow.
+        // Election is not a colour and is never returned here.
+        function eventColourBucket(ev) {
+            if (!ev || isElectionEvent(ev)) return '';
+            if (eventIsRed(ev)) return 'red';
+            if (eventIsOrange(ev)) return 'orange';
+            if (eventIsYellow(ev)) return 'yellow';
+            return '';
+        }
+
+        function shortEventName(ev) {
+            const n = (ev.event || '').toUpperCase();
+            if (n.includes('BOE') || n.includes('BANK OF ENGLAND') || n.includes('MPC RATE')) return 'BOE';
+            if (n.includes('NFP') || n.includes('NON-FARM') || n.includes('NONFARM') || n.includes('PAYROLL')) return 'NFP';
+            if (n.includes('FOMC') || n.includes('FED INTEREST') || n.includes('FEDERAL FUNDS')) return 'FOMC';
+            if (n.includes('CPI') || n.includes('INFLATION')) return 'CPI';
+            return ev.event || '';
+        }
+
+        function colourOverlapBadges(dateStr) {
+            const groups = { red: [], orange: [], yellow: [] };
+            newsEvents.filter(e => e.date === dateStr && !isElectionEvent(e)).forEach(ev => {
+                const bucket = eventColourBucket(ev);
+                if (bucket) groups[bucket].push(ev);
+            });
+            return ['red', 'orange', 'yellow'].filter(c => groups[c].length).map(c => {
+                const names = [...new Set(groups[c].map(shortEventName).filter(Boolean))];
+                const text = names.length ? `${c} · ${names.join(' · ')}` : c;
+                return `<span class="overlap-badge overlap-${c}">${escHtml(text)}</span>`;
+            }).join('');
+        }
+
+        function getDayColor(dateStr) {
+            const today = dateStr || localYMD();
+            // Election rows are ignored so they cannot turn a day yellow, orange, or red.
+            const todayEvents = newsEvents.filter(e => e.date === today && !isElectionEvent(e));
 
             // Prefer explicit day_color from locked whitelist JSON
-            const hasOrange = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'orange' || eventMatchesList(ev.event, orangeTriggers));
-            const hasYellow = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'yellow' || eventMatchesList(ev.event, yellowTriggers));
-            const hasRed = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (ev.event || '').toUpperCase().includes(k)));
-
-            if (hasRed) return 'red';
-            if (hasOrange) return 'orange';
-            if (hasYellow) return 'yellow';
+            if (todayEvents.some(eventIsRed)) return 'red';
+            if (todayEvents.some(eventIsOrange)) return 'orange';
+            if (todayEvents.some(eventIsYellow)) return 'yellow';
             return 'green';
+        }
+
+        function refreshDayStatusIfDue(now = new Date()) {
+            if (!newsLoaded) return;
+            const stamp = now.toISOString().slice(0, 16);
+            if (stamp === dayStatusStamp) return;
+            dayStatusStamp = stamp;
+            updateDayStatus();
         }
 
         function updateDayStatus() {
@@ -740,10 +893,28 @@
             const text = document.getElementById('day-status-text');
             if (!bar || !text) return;
 
-            const color = getDayColor();
-            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border status-${color} cursor-pointer hover:brightness-110 transition-all`;
+            const today = localYMD();
+            const color = getDayColor(today);
+            const electionEvents = electionsCovering(today);
+            const electionActive = electionEvents.some(e => electionWindowStarted(e));
+            // Worst restriction wins. Election (no trades) outranks the day colour.
+            // The colour itself is unchanged and stays visible as a second label.
+            const status = electionActive ? 'election' : color;
+            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border status-${status} cursor-pointer hover:brightness-110 transition-all`;
 
-            if (color === 'green') {
+            if (status === 'election') {
+                const primary = electionEvents[0] || {};
+                const when = electionWhenText(primary, today);
+                const overlap = colourOverlapBadges(today);
+                text.innerHTML = `
+                    <div class="flex items-center gap-1.5 text-sm flex-wrap justify-center">
+                        ${electionBadgeHtml('')}
+                        <span class="font-semibold">NO TRADES</span>
+                    </div>
+                    <div class="text-xs font-normal">${escHtml(when)}${primary.event ? ' · ' + escHtml(primary.event) : ''}</div>
+                    ${overlap ? `<div class="mt-1 flex flex-wrap items-center justify-center gap-1">${overlap}</div>` : ''}
+                `;
+            } else if (color === 'green') {
                 text.innerHTML = `
                     <div class="flex items-center gap-1.5 text-sm">
                         <span>🟢</span> 
@@ -780,6 +951,42 @@
                     <div class="text-xs font-normal">Major Caution Day (EOM / EOQ) — Liquidity Issues</div>
                 `;
             }
+
+            // Before polls close the day keeps its colour. The election label is still shown.
+            if (!electionActive && electionEvents.length) {
+                const badges = electionEvents.map(e => {
+                    const hm = (e.time || '23:00').slice(0, 5);
+                    return electionBadgeHtml(`NO TRADES from ${hm} GMT`);
+                }).join('');
+                text.innerHTML += `<div class="mt-1 flex flex-wrap items-center justify-center gap-1">${badges}</div>`;
+            }
+        }
+
+        function scheduledElectionHtml() {
+            const seen = new Set();
+            const bits = [];
+            newsEvents.forEach(e => {
+                if (!isElectionEvent(e)) return;
+                const key = e.id || `${e.whitelist_id || ''}|${e.date || ''}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                const dates = appearanceDates(e).map(formatElectionDate).join(', ');
+                bits.push(`
+                    <div class="mt-3 pt-3 border-t border-[#333]">
+                        <div class="font-semibold text-[#d8b4fe]">${escHtml(e.event || 'Election')}</div>
+                        <p class="text-xs mt-1">${escHtml(e.note || e.rule || ELECTION_RULE)}</p>
+                        <p class="text-xs mt-1 text-[#888]">Marked: ${escHtml(dates)}</p>
+                    </div>
+                `);
+            });
+            return bits.join('');
+        }
+
+        function formatElectionDate(iso) {
+            const parts = String(iso || '').split('-').map(Number);
+            if (parts.length < 3 || parts.some(n => !n)) return iso || '';
+            const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12));
+            return dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
         }
 
         // ============ DAY RULES POPUP ============
@@ -790,8 +997,41 @@
             const body = document.getElementById('modal-body');
             if (!modal || !badge || !title || !body) return;
 
-            const color = forcedColor || getDayColor();
+            const today = localYMD();
+            const colour = getDayColor(today);
+            const electionActive = electionActiveOn(today);
+            const color = forcedColor || (electionActive ? 'election' : colour);
             let html = '';
+
+            if (color === 'election') {
+                badge.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold election-badge';
+                badge.innerHTML = 'ELECTION';
+                title.textContent = 'No trades — major election';
+                const coveringToday = electionsCovering(today).length > 0;
+                const overlap = coveringToday && colour !== 'green' ? `
+                    <div class="mt-3 pt-3 border-t border-[#333]">
+                        <div class="font-semibold">Other label stays visible</div>
+                        <p class="text-xs mt-1">This day is also ${escHtml(colour.toUpperCase())}. ELECTION is the stricter rule, so there are no trades. The ${escHtml(colour.toUpperCase())} label stays so that news rule is not hidden.</p>
+                        <div class="mt-2 flex flex-wrap gap-1">${colourOverlapBadges(today)}</div>
+                    </div>
+                ` : '';
+                body.innerHTML = `
+                    <p>${escHtml(ELECTION_RULE)}</p>
+                    <ul class="list-disc pl-5 mt-3 space-y-1 text-xs">
+                        <li>Covers US midterms, US presidential elections, and UK general elections</li>
+                        <li>No trades from the moment the first polls close</li>
+                        <li>Stay out until the full result is in</li>
+                        <li>Then stay out for at least 24 hours after the full result</li>
+                        <li>If the result slips, the no-trade window extends. It does not end early</li>
+                        <li>On a clash, the worst restriction wins and the other label stays visible. ELECTION (no trades) outranks RED, ORANGE — including BoE / NFP and shorts-only on T−2 and T−1 — and YELLOW. Those colours keep their own meaning</li>
+                    </ul>
+                    ${scheduledElectionHtml()}
+                    ${overlap}
+                `;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                return;
+            }
 
             badge.className = `inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold status-${color}`;
 
@@ -859,6 +1099,22 @@
                 `;
             }
 
+            // Day-bar popup only. Colour legend clicks stay on that colour.
+            if (!forcedColor && !electionActive) {
+                const pending = electionsCovering(today).filter(e => !electionWindowStarted(e));
+                if (pending.length) {
+                    const badges = pending.map(e => electionBadgeHtml(`NO TRADES from ${(e.time || '23:00').slice(0, 5)} GMT`)).join('');
+                    html += `
+                        <div class="mt-3 pt-3 border-t border-[#333]">
+                            <div class="font-semibold text-[#d8b4fe]">ELECTION later today</div>
+                            <p class="text-xs mt-1">${escHtml(ELECTION_RULE)}</p>
+                            <div class="mt-2 flex flex-wrap gap-1">${badges}</div>
+                            ${scheduledElectionHtml()}
+                        </div>
+                    `;
+                }
+            }
+
             body.innerHTML = html;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -898,6 +1154,16 @@
                 currency: e.currency || '',
                 impact: e.impact || 'HIGH',
                 day_color: e.day_color || '',
+                event_type: e.event_type || '',
+                election_kind: e.election_kind || '',
+                restriction: e.restriction || '',
+                no_trade_from_utc: e.no_trade_from_utc || '',
+                no_trade_dates: Array.isArray(e.no_trade_dates) ? e.no_trade_dates.slice() : [],
+                result_expected: e.result_expected || '',
+                result_may_slip: !!e.result_may_slip,
+                hold_hours_after_result: e.hold_hours_after_result || 0,
+                note: e.note || '',
+                rule: e.rule || '',
                 forecast: e.forecast || '',
                 previous: e.previous || '',
                 actual: e.actual || '',
@@ -931,6 +1197,7 @@
         function needsLivePrintPolling() {
             const now = Date.now();
             return newsEvents.some(e => {
+                if (isElectionEvent(e)) return false;
                 if (e.actual) return false;
                 // today (local) or in release window
                 if (e.date === localYMD() && isInReleaseWindow(e, now)) return true;
@@ -973,10 +1240,12 @@
                     { date: "2026-07-30", time: "11:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH", day_color: "orange", forecast: "", previous: "3.75%", actual: "", result: "", verified: true },
                     { date: "2026-08-07", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH", day_color: "orange", forecast: "", previous: "", actual: "", result: "", verified: true },
                     { date: "2026-08-12", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true },
-                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true }
+                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true },
+                    { date: "2026-11-03", time: "23:00", event: "US Midterms", currency: "USD", impact: "HIGH", day_color: "", event_type: "election", election_kind: "us_midterms", restriction: "no_trade", whitelist_id: "us_midterms", no_trade_from_utc: "2026-11-03T23:00:00Z", no_trade_dates: ["2026-11-03", "2026-11-04", "2026-11-05"], result_expected: "2026-11-04", result_may_slip: true, hold_hours_after_result: 24, note: "US midterms. NO TRADES from 23:00 GMT Tue 3 Nov 2026, when the first polls close, until the full result is in, then at least 24 hours after. The full result is expected Wed 4 Nov and may slip if Senate races are late. Marked no-trade: Tue 3 Nov from 23:00 GMT, Wed 4 Nov, Thu 5 Nov.", rule: ELECTION_RULE, verified: true }
                 ].map(mapNewsEvent);
                 newsMeta = { last_fetched: '', source: 'offline fallback', whitelist: [] };
             }
+            newsLoaded = true;
             renderNews();
             updateDayStatus();
             scheduleNewsPolling();
@@ -991,7 +1260,7 @@
 
             const el = document.getElementById('news-last-refresh');
             if (el && live) {
-                const waiting = newsEvents.filter(e => !e.actual && isInReleaseWindow(e)).map(e => e.event);
+                const waiting = newsEvents.filter(e => !isElectionEvent(e) && !e.actual && isInReleaseWindow(e)).map(e => e.event);
                 if (waiting.length) {
                     el.textContent = `Live scan · waiting for print (${waiting.slice(0, 2).join(', ')}) · every 10s`;
                 }
@@ -1005,7 +1274,17 @@
             return 'result-pending';
         }
 
+        function electionSummary(e) {
+            const hours = e.hold_hours_after_result || 24;
+            const expected = e.result_expected ? ` Full result expected ${formatElectionDate(e.result_expected)}.` : '';
+            const slip = e.result_may_slip ? ' The window extends if the result is later.' : '';
+            return `No trades until the full result is in, then at least ${hours} hours.${expected}${slip}`;
+        }
+
         function resultLabel(e) {
+            if (isElectionEvent(e)) {
+                return `<span class="text-[#d8b4fe]">${escHtml(electionSummary(e))}</span>`;
+            }
             if (e.actual) {
                 const vs = e.delta_display || (e.result === 'inline' ? 'in line' : e.result || '');
                 const tag = e.result === 'beat' ? 'BEAT' : (e.result === 'miss' ? 'MISS' : (e.result === 'inline' ? 'IN LINE' : 'OUT'));
@@ -1021,29 +1300,61 @@
             return `<span class="result-pending">awaiting print</span>`;
         }
 
-        function newsRowHtml(e, { showDate = false, compact = false } = {}) {
+        function newsRowHtml(e, { showDate = false, compact = false, onDate = '' } = {}) {
+            const dateStr = onDate || e.date;
             const flag = getFlag(e.currency);
+            const election = isElectionEvent(e);
             let cls = 'news-yellow';
-            if ((e.day_color || '').toLowerCase() === 'orange' || eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
-            if ((e.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (e.event || '').toUpperCase().includes(k))) cls = 'news-red';
-
-            const dateBit = showDate ? `<span class="text-[#888] text-xs">${formatFullDate(e.date)}</span> ` : '';
-            const verified = e.verified ? `<span class="verified-dot" title="Verified whitelist event"></span>` : '';
-            const timeBit = e.time ? `<span class="text-[#666] text-xs font-mono">${e.time} UTC</span>` : '';
-
-            if (compact) {
-                return `<div class="py-0.5 text-sm">• ${flag} <span class="${cls}">${e.event}</span> <span class="text-[#888]">${formatDateOnly(e.date)}</span></div>`;
+            let rowExtra = '';
+            if (election) {
+                cls = 'news-election';
+                rowExtra = ' news-row-election';
+            } else {
+                if (eventIsOrange(e)) cls = 'news-orange';
+                if (eventIsRed(e)) cls = 'news-red';
             }
 
-            return `<div class="news-row">
+            const dateBit = showDate ? `<span class="text-[#888] text-xs">${formatFullDate(dateStr)}</span> ` : '';
+            const verified = e.verified ? `<span class="verified-dot" title="Verified whitelist event"></span>` : '';
+            const timeBit = election
+                ? `<span class="text-[#c4b5fd] text-xs font-mono">${escHtml(electionWhenText(e, dateStr))}</span>`
+                : (e.time ? `<span class="text-[#666] text-xs font-mono">${e.time} UTC</span>` : '');
+            const badge = election ? electionBadgeHtml('') : '';
+
+            if (compact) {
+                return `<div class="py-0.5 text-sm">• ${flag} <span class="${cls}">${e.event}</span> <span class="text-[#888]">${formatDateOnly(dateStr)}</span> ${badge}</div>`;
+            }
+
+            return `<div class="news-row${rowExtra}">
                 <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
                         <div class="${cls} text-sm font-medium leading-snug">${verified}${dateBit}${flag} ${e.event}</div>
-                        <div class="mt-0.5">${timeBit}</div>
+                        <div class="mt-0.5 flex flex-wrap items-center gap-1">${timeBit}${badge}</div>
                     </div>
                 </div>
                 <div class="mt-1.5 text-xs leading-relaxed">${resultLabel(e)}</div>
             </div>`;
+        }
+
+        function rowsInRange(startStr, endStr, excludeStr) {
+            const rows = [];
+            newsEvents.forEach(e => {
+                appearanceDates(e).forEach(d => {
+                    if (!d || d < startStr || d > endStr) return;
+                    if (excludeStr && d === excludeStr) return;
+                    rows.push({ e, d });
+                });
+            });
+            rows.sort((a, b) => a.d.localeCompare(b.d) || sortTimeForRow(a).localeCompare(sortTimeForRow(b)) || (a.e.event || '').localeCompare(b.e.event || ''));
+            return rows;
+        }
+
+        function sortTimeForRow(row) {
+            if (isElectionEvent(row.e)) {
+                const dates = appearanceDates(row.e);
+                if (row.d !== dates[0]) return '00:00';
+            }
+            return row.e.time || '';
         }
 
         function getWeekStart(d) {
@@ -1109,15 +1420,10 @@
             nextWeekEnd.setDate(nextWeekEnd.getDate() + 6);
             const nextWeekEndStr = localYMD(nextWeekEnd);
 
-            const todayEvents = newsEvents.filter(e => e.date === todayStr).sort((a, b) => a.date.localeCompare(b.date));
-            const thisWeekEvents = newsEvents.filter(e => {
-                const d = e.date;
-                return d >= thisMondayStr && d <= thisWeekEndStr && d !== todayStr;
-            }).sort((a, b) => a.date.localeCompare(b.date));
-            const nextWeekEvents = newsEvents.filter(e => {
-                const d = e.date;
-                return d >= nextMondayStr && d <= nextWeekEndStr;
-            }).sort((a, b) => a.date.localeCompare(b.date));
+            // Election windows expand onto every marked day. Colour events stay on their own date.
+            const todayRows = rowsInRange(todayStr, todayStr);
+            const thisWeekRows = rowsInRange(thisMondayStr, thisWeekEndStr, todayStr);
+            const nextWeekRows = rowsInRange(nextMondayStr, nextWeekEndStr);
 
             // Meta line
             const metaEl = document.getElementById('news-meta');
@@ -1126,41 +1432,36 @@
                     ? new Date(newsMeta.last_fetched).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                     : '—';
                 const liveBit = needsLivePrintPolling() ? ' · <span class="text-[#facc15]">release window live</span>' : '';
-                metaEl.innerHTML = `Whitelist only · data ${fetched}${liveBit}`;
+                metaEl.innerHTML = `Whitelist + elections · data ${fetched}${liveBit}`;
             }
 
             // TODAY
             const tEl = document.getElementById('news-today');
             if (tEl) {
-                if (todayEvents.length === 0) {
+                if (todayRows.length === 0) {
                     tEl.innerHTML = '<div class="text-[#666] text-sm">No whitelist events today.</div>';
                 } else {
-                    tEl.innerHTML = todayEvents
-                        .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
-                        .map(e => newsRowHtml(e))
-                        .join('');
+                    tEl.innerHTML = todayRows.map(row => newsRowHtml(row.e, { onDate: row.d })).join('');
                 }
             }
 
             // THIS WEEK
             const wEl = document.getElementById('news-this-week');
             if (wEl) {
-                if (thisWeekEvents.length === 0) {
+                if (thisWeekRows.length === 0) {
                     wEl.innerHTML = '<div class="text-[#666] text-sm">No more whitelist events this week.</div>';
                 } else {
-                    thisWeekEvents.sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''));
-                    wEl.innerHTML = thisWeekEvents.map(e => newsRowHtml(e, { showDate: true })).join('');
+                    wEl.innerHTML = thisWeekRows.map(row => newsRowHtml(row.e, { showDate: true, onDate: row.d })).join('');
                 }
             }
 
             // NEXT WEEK
             const nEl = document.getElementById('news-next-week');
             if (nEl) {
-                if (nextWeekEvents.length === 0) {
+                if (nextWeekRows.length === 0) {
                     nEl.innerHTML = '<div class="text-[#666] text-sm">No whitelist events next week yet.</div>';
                 } else {
-                    nextWeekEvents.sort((a, b) => a.date.localeCompare(b.date));
-                    nEl.innerHTML = nextWeekEvents.map(e => newsRowHtml(e, { compact: true })).join('');
+                    nEl.innerHTML = nextWeekRows.map(row => newsRowHtml(row.e, { compact: true, onDate: row.d })).join('');
                 }
             }
         }

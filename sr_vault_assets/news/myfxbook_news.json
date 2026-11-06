@@ -56,6 +56,36 @@
       "display": "FOMC Interest Rate Decision",
       "currency": "USD",
       "day_color": "yellow"
+    },
+    {
+      "id": "us_midterms",
+      "display": "US Midterms",
+      "currency": "USD",
+      "day_color": "",
+      "event_type": "election",
+      "election_kind": "us_midterms",
+      "restriction": "no_trade",
+      "rule": "Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result."
+    },
+    {
+      "id": "us_presidential",
+      "display": "US Presidential Election",
+      "currency": "USD",
+      "day_color": "",
+      "event_type": "election",
+      "election_kind": "us_presidential",
+      "restriction": "no_trade",
+      "rule": "Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result."
+    },
+    {
+      "id": "uk_general_election",
+      "display": "UK General Election",
+      "currency": "GBP",
+      "day_color": "",
+      "event_type": "election",
+      "election_kind": "uk_general",
+      "restriction": "no_trade",
+      "rule": "Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result."
     }
   ],
   "events": [
@@ -121,6 +151,40 @@
       "source": "TradingView economic calendar",
       "source_url": "http://www.federalreserve.gov/",
       "provider_title": "Fed Interest Rate Decision"
+    },
+    {
+      "id": "us_midterms_2026",
+      "whitelist_id": "us_midterms",
+      "date": "2026-11-03",
+      "time_utc": "23:00",
+      "event": "US Midterms",
+      "currency": "USD",
+      "impact": "HIGH",
+      "day_color": "",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "",
+      "verified": true,
+      "source": "SR Vault election calendar",
+      "source_url": "https://www.fec.gov/introduction-campaign-finance/election-results-and-voting-information/",
+      "event_type": "election",
+      "election_kind": "us_midterms",
+      "restriction": "no_trade",
+      "no_trade_from_utc": "2026-11-03T23:00:00Z",
+      "no_trade_dates": [
+        "2026-11-03",
+        "2026-11-04",
+        "2026-11-05"
+      ],
+      "result_expected": "2026-11-04",
+      "result_may_slip": true,
+      "hold_hours_after_result": 24,
+      "note": "US midterms. NO TRADES from 23:00 GMT Tue 3 Nov 2026, when the first polls close, until the full result is in, then at least 24 hours after. The full result is expected Wed 4 Nov and may slip if Senate races are late. Marked no-trade: Tue 3 Nov from 23:00 GMT, Wed 4 Nov, Thu 5 Nov. Extends past Thu 5 if the full result is later than Wednesday.",
+      "rule": "Major elections (US midterms, US presidential, UK general election): NO TRADES from when the first polls close until the full result is in, then stay out for at least 24 hours after the full result."
     },
     {
       "id": "boe_rate_2026-11-05",

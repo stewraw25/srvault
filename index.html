@@ -111,9 +111,38 @@
         .status-orange { background: linear-gradient(90deg, #431407, #9a3412); border-color: #fb923c; color: #fb923c; }
         .status-red { background: linear-gradient(90deg, #450a0a, #991b1b); border-color: #f87171; color: #f87171; }
 
+        /* HIGHLIGHT is a flag, not a fifth day colour. The colour classes above stay in charge. */
+        .day-status-highlight {
+            box-shadow: 0 0 0 2px #C5A572, 0 0 16px rgba(197, 165, 114, 0.45);
+        }
+
         .news-yellow { color: #facc15; }
         .news-orange { color: #fb923c; }
         .news-red { color: #f87171; }
+        .news-highlight { color: #f4e4c4; }
+
+        .news-row-highlight {
+            border-color: #C5A572;
+            background: linear-gradient(90deg, rgba(197, 165, 114, 0.16), #0c0c0c 46%);
+            box-shadow: inset 0 0 0 1px rgba(197, 165, 114, 0.55);
+        }
+
+        .highlight-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid #C5A572;
+            background: rgba(197, 165, 114, 0.16);
+            color: #f4e4c4;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
 
         .news-row {
             border: 1px solid #222;
@@ -475,6 +504,7 @@
                 </div>
                 <div id="modal-body" class="text-sm text-[#ccc] space-y-3 leading-relaxed"></div>
                 <div class="mt-6 text-[10px] text-[#666] border-t border-[#222] pt-3">
+                    <div class="text-[#C5A572] text-[11px] font-semibold mb-1">HIGHLIGHT = UK Budget / Spring Statement: flag it, no colour change</div>
                     These are guidelines for funded account traders. Always follow your firm's risk rules.
                 </div>
             </div>
@@ -568,6 +598,10 @@
                     <div onclick="showDayRules('red')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors">
                         <div class="font-semibold text-[#f87171] mb-1">RED (EOM / EOQ)</div>
                         <div class="text-[#888] text-xs">High-impact events on End of Month or End of Quarter (keyword match EOM/EOQ)</div>
+                    </div>
+                    <div onclick="showDayRules('highlight')" class="cursor-pointer hover:bg-[#111] p-1 -m-1 rounded transition-colors md:col-span-2 lg:col-span-4 border-t border-[#3a3224] pt-3">
+                        <div class="font-semibold text-[#C5A572] mb-1">HIGHLIGHT</div>
+                        <div class="text-[#c8b48a] text-xs">HIGHLIGHT = UK Budget / Spring Statement: flag it, no colour change</div>
                     </div>
                 </div>
             </div>
@@ -711,6 +745,9 @@
         const yellowTriggers = ['CPI y/y', 'Core CPI y/y', 'CPI m/m', 'Core CPI m/m', 'CPI (MoM)', 'Core CPI (MoM)', 'US CPI y/y', 'UK Inflation Rate', 'US FOMC Interest Rate Decision', 'FOMC Interest Rate Decision', 'FED Interest Rate Decision'];
         const orangeTriggers = ['BOE Interest Rate Decision', 'Bank of England MPC Rate Decision', 'Non-Farm Payrolls (NFP)', 'US Nonfarm Payrolls', 'Non-Farm Payrolls', 'NFP'];
         const redKeywords = ['EOM', 'EOQ', 'End of Month', 'End of Quarter'];
+        // HIGHLIGHT events are flagged only. They are not colour triggers.
+        const highlightBudgetNames = ['UK Autumn Budget', 'Autumn Budget', 'UK Budget'];
+        const highlightSpringNames = ['UK Spring Statement', 'Spring Statement'];
 
         function eventMatchesList(evName, list) {
             const n = (evName || '').trim();
@@ -720,9 +757,54 @@
             return list.some(t => u === String(t).toUpperCase() || u.includes(String(t).toUpperCase()));
         }
 
+        function highlightLabel(ev) {
+            if (!ev) return '';
+            const explicit = (ev.highlight_label || '').trim();
+            if (explicit) return explicit;
+            const id = (ev.whitelist_id || '').toLowerCase();
+            const name = ev.event || '';
+            if (id === 'uk_spring_statement' || eventMatchesList(name, highlightSpringNames)) return 'Spring Statement';
+            if (id === 'uk_autumn_budget' || id === 'uk_budget' || eventMatchesList(name, highlightBudgetNames)) return 'UK Budget';
+            if ((ev.day_color || '').toLowerCase() === 'highlight' || ev.highlight) {
+                return /spring/i.test(name) ? 'Spring Statement' : 'UK Budget';
+            }
+            return '';
+        }
+
+        function isHighlightEvent(ev) {
+            if (!ev) return false;
+            if (ev.highlight || (ev.day_color || '').toLowerCase() === 'highlight') return true;
+            return !!highlightLabel(ev);
+        }
+
+        function formatUkTime(e) {
+            const ms = eventReleaseUtcMs(e);
+            if (ms == null) return '';
+            const uk = new Date(ms).toLocaleTimeString('en-GB', {
+                timeZone: 'Europe/London',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            return uk + ' UK';
+        }
+
+        function highlightBadgeHtml(e) {
+            const label = highlightLabel(e);
+            if (!label) return '';
+            const uk = formatUkTime(e);
+            const text = uk ? `${label} · ${uk}` : label;
+            return `<span class="highlight-badge" title="HIGHLIGHT — flag only, no colour change">${text}</span>`;
+        }
+
+        function highlightsOn(dateStr) {
+            return newsEvents.filter(e => e.date === dateStr && isHighlightEvent(e));
+        }
+
         function getDayColor() {
             const today = localYMD();
-            const todayEvents = newsEvents.filter(e => e.date === today);
+            // Highlight events are ignored here so UK Budget / Spring Statement cannot change the colour.
+            const todayEvents = newsEvents.filter(e => e.date === today && !isHighlightEvent(e));
 
             // Prefer explicit day_color from locked whitelist JSON
             const hasOrange = todayEvents.some(ev => (ev.day_color || '').toLowerCase() === 'orange' || eventMatchesList(ev.event, orangeTriggers));
@@ -741,7 +823,9 @@
             if (!bar || !text) return;
 
             const color = getDayColor();
-            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border status-${color} cursor-pointer hover:brightness-110 transition-all`;
+            const highlights = highlightsOn(localYMD());
+            const highlightClass = highlights.length ? ' day-status-highlight' : '';
+            bar.className = `mt-6 mb-2 px-4 py-2 rounded-xl text-sm font-semibold flex flex-col items-center justify-center gap-0.5 border status-${color}${highlightClass} cursor-pointer hover:brightness-110 transition-all`;
 
             if (color === 'green') {
                 text.innerHTML = `
@@ -780,6 +864,10 @@
                     <div class="text-xs font-normal">Major Caution Day (EOM / EOQ) — Liquidity Issues</div>
                 `;
             }
+
+            if (highlights.length) {
+                text.innerHTML += `<div class="mt-1 flex flex-wrap items-center justify-center gap-1">${highlights.map(highlightBadgeHtml).join('')}</div>`;
+            }
         }
 
         // ============ DAY RULES POPUP ============
@@ -792,6 +880,23 @@
 
             const color = forcedColor || getDayColor();
             let html = '';
+
+            if (color === 'highlight') {
+                badge.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold highlight-badge';
+                badge.innerHTML = 'HIGHLIGHT';
+                title.textContent = 'Flag only — day colour unchanged';
+                body.innerHTML = `
+                    <p>HIGHLIGHT = UK Budget / Spring Statement: flag it, no colour change.</p>
+                    <ul class="list-disc pl-5 mt-3 space-y-1 text-xs">
+                        <li>UK Autumn Budget and UK Budget show a gold “UK Budget” badge with the UK time</li>
+                        <li>UK Spring Statement shows a gold “Spring Statement” badge with the UK time</li>
+                        <li>GREEN, YELLOW, ORANGE and RED are decided exactly as before</li>
+                    </ul>
+                `;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                return;
+            }
 
             badge.className = `inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold status-${color}`;
 
@@ -859,6 +964,19 @@
                 `;
             }
 
+            if (!forcedColor) {
+                const highlights = highlightsOn(localYMD());
+                if (highlights.length) {
+                    html += `
+                        <div class="mt-3 pt-3 border-t border-[#333]">
+                            <div class="font-semibold text-[#C5A572]">HIGHLIGHT — no colour change</div>
+                            <p class="text-xs mt-1">HIGHLIGHT = UK Budget / Spring Statement: flag it, no colour change.</p>
+                            <div class="mt-2 flex flex-wrap gap-1">${highlights.map(highlightBadgeHtml).join('')}</div>
+                        </div>
+                    `;
+                }
+            }
+
             body.innerHTML = html;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -898,6 +1016,8 @@
                 currency: e.currency || '',
                 impact: e.impact || 'HIGH',
                 day_color: e.day_color || '',
+                highlight: !!e.highlight || (e.day_color || '').toLowerCase() === 'highlight',
+                highlight_label: e.highlight_label || '',
                 forecast: e.forecast || '',
                 previous: e.previous || '',
                 actual: e.actual || '',
@@ -973,7 +1093,8 @@
                     { date: "2026-07-30", time: "11:00", event: "BOE Interest Rate Decision", currency: "GBP", impact: "HIGH", day_color: "orange", forecast: "", previous: "3.75%", actual: "", result: "", verified: true },
                     { date: "2026-08-07", time: "12:30", event: "Non-Farm Payrolls (NFP)", currency: "USD", impact: "HIGH", day_color: "orange", forecast: "", previous: "", actual: "", result: "", verified: true },
                     { date: "2026-08-12", time: "12:30", event: "CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true },
-                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true }
+                    { date: "2026-08-12", time: "12:30", event: "Core CPI y/y", currency: "USD", impact: "HIGH", day_color: "yellow", forecast: "", previous: "", actual: "", result: "", verified: true },
+                    { date: "2026-10-28", time: "12:30", event: "UK Autumn Budget", currency: "GBP", impact: "HIGH", day_color: "highlight", highlight: true, highlight_label: "UK Budget", forecast: "", previous: "", actual: "", result: "", verified: true, whitelist_id: "uk_autumn_budget" }
                 ].map(mapNewsEvent);
                 newsMeta = { last_fetched: '', source: 'offline fallback', whitelist: [] };
             }
@@ -1006,6 +1127,9 @@
         }
 
         function resultLabel(e) {
+            if (isHighlightEvent(e)) {
+                return `<span class="text-[#C5A572]">Flag only · day colour unchanged</span>`;
+            }
             if (e.actual) {
                 const vs = e.delta_display || (e.result === 'inline' ? 'in line' : e.result || '');
                 const tag = e.result === 'beat' ? 'BEAT' : (e.result === 'miss' ? 'MISS' : (e.result === 'inline' ? 'IN LINE' : 'OUT'));
@@ -1023,23 +1147,32 @@
 
         function newsRowHtml(e, { showDate = false, compact = false } = {}) {
             const flag = getFlag(e.currency);
+            const label = highlightLabel(e);
             let cls = 'news-yellow';
-            if ((e.day_color || '').toLowerCase() === 'orange' || eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
-            if ((e.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (e.event || '').toUpperCase().includes(k))) cls = 'news-red';
+            let rowExtra = '';
+            if (label) {
+                cls = 'news-highlight';
+                rowExtra = ' news-row-highlight';
+            } else {
+                if ((e.day_color || '').toLowerCase() === 'orange' || eventMatchesList(e.event, orangeTriggers)) cls = 'news-orange';
+                if ((e.day_color || '').toLowerCase() === 'red' || redKeywords.some(k => (e.event || '').toUpperCase().includes(k))) cls = 'news-red';
+            }
 
             const dateBit = showDate ? `<span class="text-[#888] text-xs">${formatFullDate(e.date)}</span> ` : '';
             const verified = e.verified ? `<span class="verified-dot" title="Verified whitelist event"></span>` : '';
             const timeBit = e.time ? `<span class="text-[#666] text-xs font-mono">${e.time} UTC</span>` : '';
+            const badge = label ? highlightBadgeHtml(e) : '';
 
             if (compact) {
-                return `<div class="py-0.5 text-sm">• ${flag} <span class="${cls}">${e.event}</span> <span class="text-[#888]">${formatDateOnly(e.date)}</span></div>`;
+                return `<div class="py-0.5 text-sm">• ${flag} <span class="${cls}">${e.event}</span> <span class="text-[#888]">${formatDateOnly(e.date)}</span> ${badge}</div>`;
             }
 
-            return `<div class="news-row">
+            return `<div class="news-row${rowExtra}">
                 <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
                         <div class="${cls} text-sm font-medium leading-snug">${verified}${dateBit}${flag} ${e.event}</div>
                         <div class="mt-0.5">${timeBit}</div>
+                        ${badge ? `<div>${badge}</div>` : ''}
                     </div>
                 </div>
                 <div class="mt-1.5 text-xs leading-relaxed">${resultLabel(e)}</div>

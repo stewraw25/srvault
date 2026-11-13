@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-11-13T02:50:40.562890",
+  "last_fetched": "2026-11-13T10:07:51.298836",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -236,7 +236,7 @@
       "currency": "GBP",
       "impact": "HIGH",
       "day_color": "yellow",
-      "forecast": "",
+      "forecast": "3.7%",
       "previous": "3.5%",
       "actual": "",
       "delta": null,

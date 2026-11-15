@@ -1,5 +1,5 @@
 {
-  "last_fetched": "2026-11-15T06:49:34.310892",
+  "last_fetched": "2026-11-15T14:22:09.181614",
   "source": "TradingView (actuals/forecast) + Official schedule + FF fallback",
   "schema_version": 2,
   "whitelist": [
@@ -352,6 +352,48 @@
       "source": "TradingView economic calendar",
       "source_url": "https://www.bls.gov",
       "provider_title": "Core Inflation Rate YoY"
+    },
+    {
+      "id": "uk_core_cpi_yoy_2026-12-16",
+      "whitelist_id": "uk_core_cpi_yoy",
+      "date": "2026-12-16",
+      "time_utc": "07:00",
+      "event": "Core CPI y/y",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "yellow",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "%",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.ons.gov.uk/",
+      "provider_title": "Core Inflation Rate YoY"
+    },
+    {
+      "id": "uk_inflation_yoy_2026-12-16",
+      "whitelist_id": "uk_inflation_yoy",
+      "date": "2026-12-16",
+      "time_utc": "07:00",
+      "event": "UK Inflation Rate",
+      "currency": "GBP",
+      "impact": "HIGH",
+      "day_color": "yellow",
+      "forecast": "",
+      "previous": "",
+      "actual": "",
+      "delta": null,
+      "delta_display": "",
+      "result": "",
+      "unit": "%",
+      "verified": true,
+      "source": "TradingView economic calendar",
+      "source_url": "http://www.ons.gov.uk/",
+      "provider_title": "Inflation Rate YoY"
     }
   ]
 }
